@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2027 Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f3f3; --paper:#ffffff; --ink:#1a1a1a; --muted:#8a8a8a; --line:#e2e2e2; --line2:#eeeeee; --sel:rgba(0,0,0,.075);
+  --accent:#1a1a1a; --accent-soft:#ececec; --sat:#2f6fd0; --sun:#d93a3a; --r:14px;
+  --sans:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; --serif:var(--sans);
+}
+@media (prefers-color-scheme:dark){
+  :root{--sel:rgba(255,255,255,.1);--bg:#141414;--paper:#1e1e1e;--ink:#ededed;--muted:#8f8f8f;--line:#333;--line2:#2a2a2a;--accent:#ededed;--accent-soft:#2c2c2c;--sat:#6fa3f0;--sun:#f07272}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0;cursor:pointer}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1640px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:10px 40px}
+.brand{font-weight:900;font-size:18px;margin-right:14px;letter-spacing:-.3px}
+.tab{padding:6px 14px;border-radius:999px;color:var(--muted);font-weight:500;font-size:14px}
+.tab.home{display:inline-flex;align-items:center;padding:6px 10px}
+.tab:hover{color:var(--ink);background:var(--line2)}
+.tab.on{background:var(--ink);color:var(--paper)}
+.sync{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.ok i{background:var(--ink)}.sync.busy i{background:transparent;border:1px solid var(--ink)}.sync.err i{background:var(--muted)}
+
+main{max-width:1640px;margin:0 auto;padding:28px 40px 80px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.card+.card,.section,.mlayout+.card{margin-top:22px}
+h2.sec{font-weight:700;font-size:20px;letter-spacing:-.3px;margin:0 0 14px;display:flex;align-items:baseline;gap:10px}
+h2.sec small{font-weight:400;font-size:13px;color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.muted{color:var(--muted)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:10px;padding:9px 16px;font-weight:500}
+.btn:hover{opacity:.88}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.field{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;outline:none;min-width:0}
+.field:focus{border-color:var(--ink)}
+.x{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;opacity:.5}
+.x:hover{opacity:1;background:var(--line2);color:var(--ink)}
+.bare{border:0;background:transparent;outline:none;width:100%;padding:2px 0}
+.bare:focus{background:var(--line2);border-radius:4px}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.empty.soft{color:var(--muted);opacity:.65;font-size:13px;padding:4px 0 8px}
+a.empty.soft{text-decoration:none}
+
+/* home */
+.hero{text-align:center;padding:40px 0 30px}
+.hero .big{font-weight:900;font-size:clamp(84px,16vw,168px);line-height:.9;letter-spacing:-6px}
+.hero p{color:var(--muted);margin:14px 0 0}
+.today{display:inline-block;margin-top:16px;padding:5px 14px;border:1px solid var(--line);border-radius:999px;font-size:13px}
+.shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.sc{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:26px 24px;display:flex;flex-direction:column;gap:6px;transition:transform .15s,border-color .15s;min-height:190px}
+.sc:hover{transform:translateY(-3px);border-color:var(--ink)}
+.sc .t{font-weight:700;font-size:38px;line-height:1;letter-spacing:-1px}
+.sc .d{color:var(--muted);font-size:14px}
+.sc .go{margin-top:auto;font-weight:500;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.note{text-align:center;color:var(--muted);font-size:13px;margin-top:18px}
+
+/* year */
+.goal-form{display:flex;gap:8px;flex-wrap:wrap}
+.goal-form .field[type=text]{flex:1 1 260px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 10px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 13px;font-size:13px;color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tag{background:var(--line2);color:var(--ink);display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.gt-wrap{overflow-x:auto;margin:0 -6px;padding:0 6px}
+table.gt{width:100%;border-collapse:collapse;min-width:820px}
+.gt th{font-size:11px;font-weight:500;color:var(--muted);padding:8px 4px;border-bottom:1px solid var(--line);text-align:center}
+.gt th.l{text-align:left}
+.gt td{padding:8px 4px;border-bottom:1px solid var(--line2);text-align:center;vertical-align:middle}
+.gt td.l{text-align:left}
+.gt td.m{width:34px;padding-left:0;padding-right:0}
+.mc{display:block;height:22px;margin:0 1px;border-radius:4px;background:var(--line2);cursor:pointer;touch-action:none;user-select:none;transition:background .1s}
+.mc:hover{background:var(--line)}
+.gt td.gr,.gt th.gr{width:130px;min-width:130px;padding-left:16px;padding-right:12px;text-align:left;border-left:1px solid var(--line2)}
+.gt td.gr b{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.gt td.gr small{font-size:11px;color:var(--muted);margin-left:5px;font-variant-numeric:tabular-nums}
+.rbar{display:block;height:4px;background:var(--line2);border-radius:999px;margin:4px 0 0;overflow:hidden}
+.rbar i{display:block;height:100%;background:#6e6e6e;border-radius:999px}
+.mc.on{background:#6e6e6e}
+.mc.on:hover{background:#5a5a5a}
+.mc:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.gt td.all{border-right:1px solid var(--line2);width:46px}
+.handle{cursor:grab;touch-action:none;color:var(--muted);user-select:none;width:28px;font-size:16px;letter-spacing:-2px}
+.handle:active{cursor:grabbing}
+tr.dragging{background:var(--accent-soft)}
+tr.dragging td{border-color:transparent}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mbox{position:relative;display:block;border:1px solid var(--line);border-radius:12px;padding:14px 14px 30px;min-height:120px;background:var(--bg);transition:border-color .15s,transform .15s,background .15s}
+.mbox:hover{border-color:var(--ink);background:var(--paper);transform:translateY(-2px)}
+.mbox .mgo{position:absolute;right:12px;bottom:8px;font-size:14px;color:var(--muted)}
+.mbox:hover .mgo{color:var(--ink)}
+.ylist{margin-bottom:6px}
+.ylist .yg{flex:1;min-width:0;font-size:14px}
+.mbox h4{margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.mbox h4 b{font-weight:700;font-size:17px;letter-spacing:.5px}
+.mbox h4 span{font-size:12px;color:var(--muted)}
+.mbox ul{list-style:none;margin:0;padding:0 4px 0 0;font-size:13px;max-height:calc(7 * 22px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.mbox li{line-height:18px}
+.mbox li{display:flex;gap:7px;align-items:baseline;padding:2px 0}
+.mbox li .dot{transform:translateY(-1px)}
+.mbtns{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.mbtn{font-weight:500;font-size:20px;text-align:center;padding:16px 0;border:1px solid var(--line);border-radius:12px;background:var(--paper);letter-spacing:1px}
+.mbtn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* page head */
+.phead{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.phead .ttl{flex:1;min-width:0}
+.trow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.arrows{display:inline-flex;gap:6px;margin-top:6px}
+.trow h1.hm{min-width:1.3em;text-align:center;margin-left:.06em;font-size:clamp(64px,8vw,96px);font-weight:900;letter-spacing:-.06em;line-height:.82;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}.trow h1.hw{min-width:4.8em}.trow h1.hd{min-width:5.7em}
+.trow{flex-wrap:nowrap}
+.phead h1{font-weight:700;letter-spacing:-1.5px;font-size:clamp(36px,6vw,56px);line-height:1;margin:4px 0 0}
+.phead h1 span{font-family:var(--sans);font-size:18px;color:var(--muted);margin-left:8px;font-weight:400}
+.arrow{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:20px;background:var(--paper)}
+.arrow:hover{border-color:var(--ink)}
+.arrow.off{opacity:.25;pointer-events:none}
+.sub{font-size:14px;color:var(--muted);margin-top:6px}
+.sub a{color:var(--ink);font-weight:500;margin-left:10px;text-decoration:underline;text-underline-offset:3px}
+
+/* monthly */
+.mlayout{display:grid;grid-template-columns:270px 1fr;gap:20px;align-items:start}
+.side .card{padding:18px}
+.side>.card+.card{margin-top:14px}
+.mshell{display:block}
+.mtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-6px 0 22px}
+.mtabs a{padding:10px 16px;font-size:15px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.mtabs a:hover{color:var(--ink)}
+.mtabs a.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.mcontent{min-width:0}
+.mcontent .mlayout{grid-template-columns:minmax(340px,30%) minmax(0,1fr)}
+.mcontent .mlayout .mmemo{min-height:260px}
+.mmain{min-width:0}
+.mmain>.card:first-child{margin-top:0}
+.wmemos.big{grid-template-columns:repeat(var(--wn),minmax(220px,1fr));gap:12px}
+.wplanwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px;align-items:start}
+.wscroll{overflow-x:auto;padding-bottom:4px}
+.gpanel{position:fixed;left:24px;top:80px;width:290px;margin-top:0;padding:18px;max-height:calc(100vh - 104px);overflow-y:auto;z-index:35;box-shadow:0 12px 36px rgba(0,0,0,.14);transform:translateX(calc(-100% - 40px));opacity:0;visibility:hidden;transition:transform .22s ease,opacity .18s,visibility 0s linear .22s}
+.gpanel.open{transform:translateX(0);opacity:1;visibility:visible;transition:transform .22s ease,opacity .18s}
+.gpclose{margin-left:8px;font-size:18px}
+.mtabs .gtoggle{margin-left:auto;align-self:center;font-size:13px;padding:5px 14px}
+.mtabs .gtoggle.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.gpanel h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center}
+.gp-cat{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 4px}
+.gp-item{display:flex;align-items:center;gap:8px;padding:7px 8px;margin:0 -8px;border-radius:8px;cursor:grab;font-size:14px;user-select:none;touch-action:none}
+.gp-item:hover{background:var(--line2)}
+.gp-item input{flex:none;width:16px;height:16px;cursor:pointer}
+.gp-item .gp-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp-item.done .gp-t{text-decoration:line-through;color:var(--muted)}
+.gp-item .gp-p{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;border:1px solid var(--line);border-radius:999px;padding:0 6px}
+.gp-item.dragsrc{opacity:.4}
+.gpanel .gadd{margin-top:14px}
+.rte .h{font-weight:700;position:relative;padding-left:16px;margin-top:6px}
+.rte .h::before{content:'';position:absolute;left:3px;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.rte .h[data-n]::before{content:'▾';width:auto;height:auto;background:none;top:0;left:0;font-size:12px;color:var(--muted);cursor:pointer;line-height:1.65}
+.rte .h[data-n][data-col="1"]::before{content:'▸'}
+.rte .h[data-col="1"]::after{content:attr(data-n);font-size:10px;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 5px;margin-left:6px;vertical-align:1px}
+.rte .cat{display:table;font-size:12px;font-weight:600;background:var(--line2);border-radius:6px;padding:1px 9px;margin:10px 0 2px}
+.rte>div:first-child.cat,.rte>div:first-child.h{margin-top:0}
+.rte [data-ind="1"]{margin-left:18px}
+.rte [data-ind="2"]{margin-left:36px}
+.rte [data-ind="3"]{margin-left:54px}
+.rte .bul{position:relative;padding-left:16px}
+.rte .bul::before{content:'';position:absolute;left:4px;top:.68em;width:5px;height:5px;border-radius:50%;background:var(--ink)}
+.rte .bul[data-ind="1"]::before,.rte .bul[data-ind="3"]::before{background:transparent;border:1.2px solid var(--ink);width:4px;height:4px}
+.rte .hid{display:none}
+.rte>div.bsel{background:var(--sel)!important;box-shadow:-4px 0 0 var(--sel),4px 0 0 var(--sel)}
+.rte>div.cat.bsel{outline:1.5px solid rgba(0,0,0,.3);outline-offset:1px}
+body.bsel-drag,body.bsel-drag *{user-select:none!important;-webkit-user-select:none!important}
+#bselbar{position:fixed;z-index:45;display:none;align-items:center;gap:1px;background:var(--paper);border:1px solid var(--line);border-radius:9px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:3px;font-size:12px}
+#bselbar.show{display:flex}
+#bselbar .bscount{color:var(--muted);padding:0 8px 0 7px;font-weight:600;white-space:nowrap}
+#bselbar button{font:inherit;color:var(--ink);background:none;border:0;padding:5px 9px;border-radius:6px;cursor:pointer;white-space:nowrap}
+#bselbar button:hover{background:var(--line2)}
+#bselbar .bsmenu{position:absolute;top:calc(100% + 4px);background:var(--paper);border:1px solid var(--line);border-radius:9px;box-shadow:0 6px 18px rgba(0,0,0,.1);padding:4px;display:flex;flex-direction:column;min-width:170px}
+#bselbar .bsmenu button{text-align:left}
+#catmenu{position:fixed;z-index:60;display:none;flex-direction:column;min-width:150px;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);padding:4px}
+#catmenu.show{display:flex}
+#catmenu button{border:0;background:none;text-align:left;padding:7px 10px;border-radius:7px;font-size:13px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+#catmenu button:hover{background:var(--line2)}
+.rte-bar button{font-size:12px}
+.gtrow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
+.gtrow .list{max-height:180px;overflow-y:auto}
+.side.gtrow>.card+.card{margin-top:0}
+.wmemos.big .wm{background:var(--paper);padding:16px}
+.wmemos.big .wm .rte{min-height:320px;font-size:14px}
+.side h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between}
+.list{list-style:none;margin:0 0 10px;padding:0}
+.list li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line2)}
+.list li .bullet{color:var(--ink);font-size:10px;flex:none;width:16px;text-align:center}
+.list li.done .bare{text-decoration:line-through;color:var(--muted)}
+.addrow{display:flex;gap:6px}
+.addrow .field{flex:1;padding:7px 10px;font-size:14px}
+.cal{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.cal-h,.cal-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-h div{font-size:11px;letter-spacing:1.5px;color:var(--muted);text-align:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.cal-h .sa{color:var(--sat)}.cal-h .su{color:var(--sun)}
+.cell{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);min-height:118px;padding:6px 7px;display:flex;flex-direction:column;min-width:0}
+.cell:nth-child(7n){border-right:0}
+.cal-row:last-child .cell{border-bottom:0}
+.cell .n{font-size:13px;font-weight:500}
+.cell.sa .n{color:var(--sat)}.cell.su .n,.cell.hol .n{color:var(--sun)}
+.cell .ch{display:flex;align-items:baseline;gap:6px;min-width:0}
+.cell .hn{font-size:11px;color:var(--sun);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cell.out .hn{opacity:.4}
+.cell.out{background:var(--bg)}
+.cell.out .n{opacity:.35}
+.cell.today .n{background:var(--ink);color:var(--paper)!important;border-radius:999px;padding:0 7px;align-self:flex-start}
+.cell textarea{flex:1;border:0;background:transparent;resize:none;outline:none;font-size:12px;line-height:1.45;padding:3px 0 0;min-height:80px;width:100%}
+.cell textarea:focus{background:var(--line2);border-radius:6px}
+.wmemos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.wm{border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:6px}
+.wm .h{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.wm .h b{font-size:14px}
+.wm .h a{color:var(--ink);font-size:12px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+.wm .rte{min-height:120px;font-size:13px;padding:4px 6px;margin:0 -6px;border-radius:6px}
+.wm .rte:focus{background:var(--paper)}
+.rte{outline:none;line-height:1.65;word-break:break-word;cursor:text}
+.rte>div{min-height:1.65em}
+.rte b{font-weight:700}
+.rte .todo{position:relative;padding-left:22px}
+.rte .todo::before{content:'';position:absolute;left:1px;top:.32em;width:14px;height:14px;border:1.5px solid var(--ink);border-radius:3px;box-sizing:border-box;background:var(--paper);cursor:pointer}
+.rte .todo[data-done="1"]::before{background:var(--ink)}
+.rte .todo[data-done="1"]::after{content:'';position:absolute;left:6px;top:calc(.32em + 2px);width:4px;height:7px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg);pointer-events:none}
+.rte .todo[data-done="1"]{color:var(--muted);text-decoration:line-through}
+.rte-bar{display:flex;gap:4px}
+.rte-bar button{border:1px solid var(--line);background:var(--paper);border-radius:6px;width:28px;height:26px;font-size:13px;padding:0;display:grid;place-items:center;color:var(--ink)}
+.rte-bar button:hover{border-color:var(--ink)}
+.cbx{width:12px;height:12px;border:1.5px solid currentColor;border-radius:3px;display:block}
+
+/* weekly */
+.wgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.wgrid>.card.spend{margin-top:0;align-self:stretch;display:flex;flex-direction:column}
+.wplan{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.wgoals ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.wgoals li{display:flex;align-items:center;gap:9px}
+.wgoals .sec{justify-content:space-between}
+.wgoals .more{font-size:15px;color:var(--muted);font-weight:400}
+.wgoals .more:hover{color:var(--ink)}
+.wstats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-bottom:22px}
+.wstat{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.wstat span{font-size:13px;color:var(--muted)}
+.wstat b{font-size:26px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.wstat small{font-size:12px;color:var(--muted)}
+.wstats+.wlog{margin-top:0}
+.wgrid>.card.spend>.empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:15px}
+.card.wsec{margin-top:22px}
+.sched{display:flex;flex-direction:column}
+.sched .pin{flex:1;display:flex;flex-direction:column}
+.wgrid+.card{margin-top:22px}
+.wgrid>.card{margin-top:0}
+.sched .empty{padding:0}
+.slist{display:flex;flex-direction:column}
+.srow{display:grid;grid-template-columns:62px 1fr;gap:10px;padding:8px 4px;border-top:1px solid var(--line2);font-size:14px;border-radius:6px}
+.srow:first-child{border-top:0}
+.srow:hover{background:var(--line2)}
+.srow .sd{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.srow.we .sd{color:var(--sun)}
+.srow.sat .sd{color:var(--sat)}
+.wsched{padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.wsched .srow{grid-template-columns:58px 1fr;gap:8px;padding:5px 2px;font-size:13px}
+.wsched .srow .sd{font-size:12px}
+.wsched .empty{padding:2px 0;font-size:12px}
+.wtodo-h{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.srow .st{min-width:0;word-break:break-word}
+.pin{display:flex;flex-direction:column}
+.sched .pin{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.pinh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.pinh h3{margin:0;font-size:16px}
+.pin .rte{flex:1;min-height:130px;background:transparent;padding:2px 0;font-size:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.rlist{list-style:none;margin:0 0 14px;padding:0}
+.rlist li{display:grid;grid-template-columns:1fr auto auto auto;grid-template-areas:'t c p x';column-gap:12px;row-gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line2)}
+.rlist .rt{grid-area:t}.rlist .rprog{grid-area:p}.rlist .x{grid-area:x}.rlist .rchecks{grid-area:c}
+.rlist .rt{font-weight:500;word-break:break-all}
+.rchecks{display:flex;justify-content:flex-start;gap:6px;width:176px}
+.rchecks input{width:20px;height:20px}
+.rprog{font-size:12px;color:var(--muted);min-width:34px;text-align:right}
+.rform{display:flex;gap:6px}
+.rform .field.t{flex:1 1 auto;min-width:0}
+.rform .field.n{width:58px;flex:none}
+.rform .btn{flex:none;padding:9px 14px}
+.kpt{display:flex;flex-direction:column;gap:10px}
+.acc{border:1px solid var(--line);border-radius:12px;background:var(--bg);overflow:hidden}
+.acc summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.acc summary::-webkit-details-marker{display:none}
+.acc .al{font-weight:700;font-size:16px;flex:none;width:76px}
+.acc .ap{flex:1;min-width:0;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc[open] .ap{visibility:hidden}
+.chev{width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s;flex:none}
+.acc[open] .chev{transform:rotate(-135deg)}
+.acc textarea{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--paper);outline:none;resize:vertical;min-height:130px;padding:14px 16px;font-size:14px}
+
+.dlog{padding:4px 24px}
+.dlog .lr{display:grid;grid-template-columns:104px minmax(0,1fr);gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line2)}
+.dlog .lr:first-child{border-top:0}
+.dlog .lk{font-size:14px;font-weight:700;display:flex;flex-wrap:wrap;white-space:nowrap;align-items:center;gap:8px;align-self:start;min-height:32px}
+.dlog .lk .di{font-size:16px;line-height:1;width:20px;text-align:center}
+.dlog .lsum.in{flex-basis:auto;margin:0 0 0 4px;font-size:13px}
+.dlog .lsum{flex-basis:100%;font-weight:600;font-size:12px;color:var(--muted);margin:-4px 0 0 28px;font-variant-numeric:tabular-nums}
+.dlog .lv{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-width:0}
+.dlog .lv.col{flex-direction:column;align-items:stretch;gap:6px}
+.dlog .meals4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px}
+.dlog .meals4 .inl small{width:auto}
+.dlog .rtrow{gap:6px 22px}
+.dlog .rtrow .rtd{padding:0}
+.dlog .cadd,.dlog .eadd{gap:10px}
+.dlog .cadd{flex-wrap:nowrap}
+.dlog .cadd .inl.grow{flex:1 1 0;min-width:0}
+.dlog .cadd .ln.grow,.dlog .eadd .ln.grow{min-width:0;width:100%}
+.dlog .eadd .inl.grow{flex:1 1 55%}
+.dlog .eadd .ln.amt{width:90px}
+@media (max-width:900px){.dlog .lr{grid-template-columns:1fr;gap:8px}.dlog .meals4{grid-template-columns:1fr 1fr}}
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.dt{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px 22px;min-width:0}
+.dt.span2{grid-column:span 2}
+.dt h3{margin:0 0 16px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dt h3 .di{font-size:17px;line-height:1}
+.dt h3 .dtot{margin-left:auto;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.dt .dv{gap:12px 24px}
+.dt .dv.col{gap:10px}
+.meals2{display:grid !important;grid-template-columns:1fr 1fr;gap:12px 28px !important}
+.cadd .inl.full{flex:1 1 100%}
+.dt-exp .eadd{row-gap:10px}
+.dlog{padding:6px 22px}
+.dr{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid var(--line2);align-items:center}
+.dr:last-child{border-bottom:0}
+.dl{font-size:14px;font-weight:500;color:var(--muted)}
+.dv{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;min-width:0}
+.dv.col{flex-direction:column;align-items:stretch;gap:6px}
+.inl{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.inl small{font-size:12px;color:var(--muted);white-space:nowrap}
+.inl.wide small{width:30px;flex:none}
+.inl.grow,.ln.grow{flex:1 1 auto}
+.ln{border:0;border-bottom:1px solid var(--line);background:transparent;outline:none;padding:4px 2px;font-size:14px;min-width:0;border-radius:0}
+.ln:focus{border-bottom-color:var(--ink)}
+.ln.num{width:44px;text-align:right;font-variant-numeric:tabular-nums}
+select.ln{padding-right:4px;cursor:pointer}
+.res{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.conds{display:inline-flex;gap:2px}
+.cond{border:0;background:none;font-size:20px;line-height:1;padding:3px 4px;border-radius:8px;filter:grayscale(1);opacity:.4}
+.cond:hover{opacity:.8}
+.cond.on{filter:none;opacity:1;background:var(--line2)}
+.rtd{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:2px 0}
+.rtd small{color:var(--muted);font-size:12px;margin-left:auto;font-variant-numeric:tabular-nums}
+.rtd.on span{color:var(--muted);text-decoration:line-through}
+.rtd.full{opacity:.45;cursor:default}
+.cline{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1.4fr) auto;gap:12px;align-items:center;font-size:14px;padding:2px 0}
+.ctype{font-size:12px;color:var(--muted);white-space:nowrap}
+.ctitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnote2{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cadd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.addbtn{border:1px solid var(--line);background:transparent;border-radius:8px;width:30px;height:30px;font-size:16px;line-height:1;padding:0;flex:none}
+.addbtn:hover{border-color:var(--ink)}
+.addbtn.sm{width:24px;height:24px;font-size:13px;border-radius:6px}
+.dtot{font-size:12px;font-weight:400;margin-top:2px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.eline{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto;gap:12px;align-items:center;font-size:14px;padding:2px 0}
+.ekind{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted);white-space:nowrap}
+.ekind.ev{border-color:var(--ink);color:var(--ink)}
+.ecat{white-space:nowrap}
+.etext{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.epay{font-size:12px;color:var(--muted);white-space:nowrap}
+.eamt{font-variant-numeric:tabular-nums;font-weight:500;text-align:right;min-width:64px}
+.esum{font-size:12px;color:var(--muted);text-align:right;padding-right:34px}
+.eadd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ln.amt{width:96px;text-align:right;font-variant-numeric:tabular-nums}
+.kseg{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:2px}
+.kseg button{border:0;background:none;font-size:12px;padding:4px 9px;border-radius:6px;color:var(--muted)}
+.kseg button.on{background:var(--ink);color:var(--paper)}
+.gear{border:0;background:none;color:var(--muted);padding:4px;border-radius:6px;display:grid;place-items:center}
+.gear:hover,.gear.on{color:var(--ink);background:var(--line2)}
+.emgr{background:var(--bg);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.mrow{display:grid;grid-template-columns:60px 1fr;gap:10px;align-items:start}
+.mrow>small{font-size:12px;color:var(--muted);padding-top:5px}
+.mchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mchip{display:inline-flex;align-items:center;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:13px}
+.mchip .x{font-size:14px;padding:0 4px}
+.optadd{display:inline-flex;align-items:center;gap:4px}
+.optadd .ln{width:90px;font-size:13px;padding:2px}
+.chips .gear{margin-left:2px}
+.gmgr{margin:-2px 0 12px}
+.mname{border:0;background:none;padding:0;font-size:13px;color:var(--ink);cursor:text}
+.mname:hover{text-decoration:underline;text-underline-offset:3px}
+.mchip.editing{padding:2px 6px}
+.ren{border:0;outline:none;background:transparent;font-size:13px;width:110px;padding:0}
+.cdot{width:10px;height:10px;border-radius:50%;border:0;padding:0;margin-right:6px;cursor:pointer}
+.wlog{margin-top:22px}
+.wrow2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:stretch;margin-top:22px}
+.wrow2>.card,.wrow2>.card.spend{margin-top:0}
+.wcol{display:flex;flex-direction:column;gap:20px;min-width:0}
+.wcol>.card{margin-top:0}
+.wrev .acc summary{padding:11px 14px}
+.wrev .acc .al{font-size:15px}
+.wrev .kpt{gap:8px}
+.wrow2+.card{margin-top:22px}
+.wcol table.lt{min-width:460px}
+.wcol .lt th,.wcol .lt td{padding:8px 4px}
+.wrow2 .vcol{height:150px}
+.card.spend{margin-top:22px}
+.stot{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;margin:-2px 0 22px;padding-bottom:16px;border-bottom:1px solid var(--line2)}
+.stot>div{display:flex;flex-direction:column;gap:2px}
+.stot span{font-size:12px;color:var(--muted)}
+.stot b{font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.stot b small{font-size:13px;font-weight:500;color:var(--muted);margin-left:2px}
+.st-main b{font-size:28px;font-weight:700}
+.st-sub b{font-size:18px;font-weight:600}
+.st-sub{padding-left:28px;border-left:1px solid var(--line)}
+.vwrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.vbars{display:grid;gap:10px;align-items:end;max-width:100%}
+.vb{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.vcol{width:100%;max-width:48px;height:180px;display:flex;align-items:flex-end;padding-top:20px;border-bottom:1px solid var(--line)}
+.vcol i{position:relative;display:block;width:100%;background:var(--ink);border-radius:6px 6px 0 0}
+.vcol em{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-style:normal;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vn{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:6px}
+.vp{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+table.lt{width:100%;border-collapse:collapse;min-width:620px;font-size:13px}
+.lt th,.lt td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums}
+.lt thead th{font-weight:400;border-bottom:1px solid var(--line)}
+.lt thead th a,.lt thead th span{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 0;border-radius:6px}
+.lt thead th a:hover{background:var(--line2)}
+.lt thead small{color:var(--muted);font-size:11px}
+.lt tbody th{text-align:left;font-weight:500;white-space:nowrap;color:var(--muted)}
+.lt .avg{font-weight:700;border-left:1px solid var(--line)}
+.lt tbody tr:last-child th,.lt tbody tr:last-child td{border-bottom:0}
+.dday{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:stretch}
+.dtoday{display:flex;flex-direction:column;gap:16px}
+.dtoday .dt.rte-wrap{flex:1;min-height:320px}
+.dtoday .dt{display:flex;flex-direction:column}
+.dtoday h3 .more{margin-left:auto;font-size:15px;color:var(--muted);font-weight:400}
+.dtoday h3 .wsec-r{margin-left:auto}
+.dhol{font-size:12px;font-weight:500;color:var(--sun);margin-left:4px}
+.dsched{flex:1;min-height:120px;border:0;background:transparent;outline:none;resize:vertical;font-size:14px;line-height:1.6;padding:0}
+.dtodo{flex:1;min-height:120px;font-size:14px}
+.dwg{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+.dwg span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink)}
+.dwg span.done{color:var(--muted);text-decoration:line-through}
+.list li.done .yg,.list li.done .bare{text-decoration:line-through;color:var(--muted)}
+.list li input[type=checkbox]{flex:none;width:16px;height:16px}
+td.gdone .bare{text-decoration:line-through;color:var(--muted)}
+.gt td.gd{width:40px;border-right:1px solid var(--line2)}
+.mc.ach{position:relative}
+.mc.ach::after{content:'';position:absolute;left:50%;top:45%;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg)}
+.mbox li.done span:last-child{text-decoration:line-through;color:var(--muted)}
+.gadd{flex-wrap:nowrap;align-items:stretch}
+.gadd input.field{flex:1 1 auto;min-width:0}
+.gpickw{position:relative;display:flex;flex:none}
+.gpick{width:38px;border:1px solid var(--line);background:var(--bg);border-radius:10px;display:grid;place-items:center;padding:0}
+.gpick:hover,.gpickw.open .gpick{border-color:var(--ink)}
+.gdot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.gdot.empty{border:1.5px dashed var(--muted);background:transparent}
+.gemo{font-size:15px;line-height:1}
+.gmenu{display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:150px;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);padding:4px;flex-direction:column}
+.gpickw.open .gmenu{display:flex}
+.gmenu button{border:0;background:none;text-align:left;padding:7px 10px;border-radius:7px;font-size:13px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.gmenu button:hover{background:var(--line2)}
+.mmemo{min-height:140px;font-size:14px}
+.grate{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-weight:400}
+.grate b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.grate small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.grate .rbar{width:56px;margin:0}
+.side h3,.dw-s h3{align-items:center}
+.drawer .mmemo{min-height:200px}
+.monbtn{border:1px solid var(--line);background:var(--paper);color:var(--muted);font-size:12px;font-weight:500;border-radius:999px;padding:3px 10px;margin-left:8px;line-height:1.4}
+.monbtn:hover{color:var(--ink);border-color:var(--ink)}
+.wsec-r{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
+.wsec-r .monbtn{margin-left:0}
+.w3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.w3>.card{margin-top:0;display:flex;flex-direction:column;min-height:260px}
+.w3 h2.sec{display:flex;align-items:center}
+.w3 .wtodo{flex:1;min-height:160px;font-size:14px}
+.wgc .empty.soft{flex:1;display:flex;align-items:center;justify-content:center;padding:0}
+.wgc .addrow{margin-top:auto;padding-top:12px}
+.w3 .list li.done .bare{text-decoration:line-through;color:var(--muted)}
+.wroutine{margin-top:22px}
+.wroutine>.card{margin-top:0}
+.wsec-h{display:flex;align-items:center;font-size:13px;font-weight:700;margin:10px 0 6px}
+.wsec-h .monbtn{margin-left:auto;padding:2px 8px;font-size:11px}
+.wsec-h .wsec-r .monbtn{margin-left:0}
+.wgl{padding-bottom:8px;border-bottom:1px solid var(--line)}
+.wgl .list{margin-bottom:6px}.wgl .list li{padding:3px 0;font-size:13px}
+.wgl .addrow .field{padding:5px 8px;font-size:13px}.wgl .addrow .btn{padding:4px 10px}
+.wgl .list li.done .bare{text-decoration:line-through;color:var(--muted)}
+.dw-ov{position:fixed;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .22s;z-index:40}
+.dw-ov.open{opacity:1}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.08);z-index:41;transform:translateX(100%);transition:transform .24s ease;overflow-y:auto;padding:20px 22px 40px}
+.drawer.open{transform:translateX(0)}
+.dw-h{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.dw-h b{font-size:26px;font-weight:900;letter-spacing:-.5px}
+.dw-link{font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;margin-left:auto}
+.dw-h .x{font-size:22px;opacity:.7}
+.dw-s{padding:16px 0;border-top:1px solid var(--line)}
+.dw-s h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between}
+.drawer .list li.done .bare{text-decoration:line-through;color:var(--muted)}
+#dragh{position:fixed;z-index:30;width:18px;height:22px;display:none;align-items:center;justify-content:center;font-size:13px;letter-spacing:-2px;color:var(--muted);cursor:grab;border-radius:5px;user-select:none;touch-action:none}
+#dragh.show{display:flex}
+#dragh:hover{background:var(--line2);color:var(--ink)}
+#dropline{position:fixed;height:2px;background:var(--ink);border-radius:2px;z-index:31;display:none;pointer-events:none}
+#dropline.show{display:block}
+#dghost{position:fixed;z-index:32;pointer-events:none;background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.12);border-radius:8px;padding:5px 10px;font-size:13px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+.rte>div.dragsrc{opacity:.35}
+body.dragging-line,body.dragging-line *{cursor:grabbing!important;user-select:none!important}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:50;display:flex;align-items:center;gap:4px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 16px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.08);transition:opacity .18s,transform .18s;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast .tmsg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-right:6px;color:var(--muted)}
+#toast .tundo{border:0;background:var(--line2);color:var(--ink);font-weight:600;font-size:13px;border-radius:8px;padding:6px 12px;flex:none}
+#toast .tundo:hover{background:var(--line)}
+#toast .tclose{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 6px;flex:none}
+#toast .tclose:hover{color:var(--ink)}
+@media (max-width:900px){
+  .mlayout,.wgrid{grid-template-columns:1fr}
+  .mtabs a{flex:1;text-align:center;padding:10px 4px;font-size:14px}
+  .mcontent .mlayout{grid-template-columns:1fr}
+  .gpanel{left:12px;width:calc(100vw - 24px)}
+  .dgrid{grid-template-columns:1fr 1fr}.dt.span2{grid-column:span 2}
+  .wrow2{grid-template-columns:1fr}
+  .dday{grid-template-columns:1fr}
+  .w3{grid-template-columns:1fr}
+  .wstats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gtrow{grid-template-columns:1fr}
+  .wmemos.big{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .shortcuts{grid-template-columns:repeat(2,1fr)}
+  .mgrid{grid-template-columns:repeat(2,1fr)}
+  .mbtns{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-width:640px){
+  main{padding:18px 12px 60px}
+  .nav-in{padding:8px 12px;gap:2px;flex-wrap:wrap}
+  .brand{font-size:17px;margin-right:6px}
+  .tab{padding:5px 10px;font-size:13px}
+  .sync span{display:none}
+  .shortcuts{grid-template-columns:1fr}
+  .sc{min-height:auto}
+  .mbtns{grid-template-columns:repeat(3,1fr)}
+  .cell{min-height:84px;padding:4px}
+  .cell textarea{font-size:11px;min-height:56px}
+  .cell .ch{flex-direction:column;align-items:flex-start;gap:0}
+  .cell .hn{font-size:9px;max-width:100%}
+  .cal-h div{font-size:10px;letter-spacing:0}
+  .kpt{grid-template-columns:1fr}
+  .dr{grid-template-columns:1fr;gap:8px}
+  .dgrid{grid-template-columns:1fr}.dt.span2{grid-column:auto}.meals2{grid-template-columns:1fr !important}.dt{padding:16px}
+  .dlog{padding:4px 16px}
+  .cline{grid-template-columns:auto minmax(0,1fr) auto}
+  .cline .cnote2{grid-column:2/-1;grid-row:2}
+  .cline .x{grid-column:3;grid-row:1}
+  .cadd .inl.grow,.eadd .inl.grow{flex:1 1 100%}
+  .eline{grid-template-columns:auto auto minmax(0,1fr) auto}
+  .eline .etext,.eline .epay{grid-row:2}
+  .eline .etext{grid-column:1/3}.eline .epay{grid-column:3}
+  .esum{padding-right:0}
+  .mrow{grid-template-columns:1fr;gap:4px}
+  .stot{gap:10px 20px}.st-main{flex-basis:100%}.st-main b{font-size:24px}.st-sub b{font-size:16px}.st-main+.st-sub{padding-left:0;border-left:0}.st-sub{padding-left:20px}
+  .vcol{height:150px}.vbars{gap:6px}.vcol em{font-size:11px}
+  .rlist li{grid-template-columns:1fr auto auto;grid-template-areas:'t p x' 'c c c';row-gap:6px}
+  .rlist .rchecks{grid-column:1/-1;order:3}
+  .card{padding:16px}
+}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-in">
+  <a class="brand" href="#home">2027 Planner</a>
+  <a class="tab home" data-tab="home" href="#home" aria-label="메인" title="메인"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg></a>
+  <a class="tab" data-tab="year" href="#year">2027</a>
+  <a class="tab" data-tab="month" href="#monthly">Monthly</a>
+  <a class="tab" data-tab="week" href="#weekly">Weekly</a>
+  <a class="tab" data-tab="day" href="#daily">Daily</a>
+  <div class="sync" id="sync"><i></i><span>연결 중…</span></div>
+</div></nav>
+<main id="app"></main>
+
+<script>
+(function(){
+const YEAR = 2027;
+const PAL = [{bg:'#fbe0de',dot:'#ec8f87'},{bg:'#dbeeff',dot:'#7db4e6'},{bg:'#fff2bf',dot:'#e9c645'},{bg:'#e2f4d2',dot:'#8fca66'},{bg:'',dot:'#b8b8b8'},{bg:'#ece3fb',dot:'#a98be0'},{bg:'#ffe6d1',dot:'#f0a56b'},{bg:'#d7f3ec',dot:'#5fc2a8'},{bg:'#fde0ef',dot:'#e88bb8'}];
+const DEFAULT_GCATS = [{n:'커리어',e:'💼',c:0},{n:'건강',e:'🏃🏻‍♀️‍➡️',c:1},{n:'공부',e:'✍🏻',c:2},{n:'경제',e:'💵',c:3},{n:'기타',e:'',c:4}];
+const gcats = () => get('settings').goalCats;
+const catInfo = n => gcats().find(x=>x.n===n) || {n, e:'', c:4};
+const catLabel = n => { const i = catInfo(n); return (i.e||'') + n; };
+const catDot = n => PAL[catInfo(n).c % PAL.length].dot;
+let gEdit = false;
+let renaming = null;
+const isRen = (k,i) => renaming && renaming.kind===k && renaming.i===i;
+const renInput = (k,i,v) => `<span class="mchip editing"><input class="ren" type="text" value="${esc(v)}" data-ren="1" data-kind="${k}" data-i="${i}" aria-label="이름 수정" autocomplete="off"></span>`;
+async function renameInDays(field, oldV, newV){
+  const keys = new Set(Object.keys(cache).filter(k=>k[0]==='d'));
+  try { for (let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if (k && k.startsWith(LS+'d')) keys.add(k.slice(LS.length)); } } catch(e){}
+  if (db && me){
+    try {
+      const qs = await db.collection('data/users/'+me).get();
+      qs.docs.forEach(doc=>{ if (doc.id[0]!=='d' || !doc.exists) return; keys.add(doc.id);
+        if (!cache[doc.id] || (remoteState[doc.id]!=='done' && !remoteState[doc.id+':edited'])){ cache[doc.id] = Object.assign(defaults(doc.id), JSON.parse(JSON.stringify(doc.data()))); remoteState[doc.id] = 'done'; } });
+    } catch(e){}
+  }
+  keys.forEach(k=>{ const d = get(k); let ch = false; (d.exps||[]).forEach(e=>{ if (e[field]===oldV){ e[field]=newV; ch=true; } }); if (ch) save(k); });
+}
+function commitRen(inp, cancel){
+  if (inp.dataset.done) return; inp.dataset.done = '1';
+  const kind = inp.dataset.kind, i = +inp.dataset.i, v = inp.value.trim();
+  renaming = null;
+  if (cancel || !v){ render(); return; }
+  const st = get('settings');
+  if (kind==='goalCats'){
+    const x = st.goalCats[i]; if (!x){ render(); return; }
+    const old = x.n;
+    if (v !== (x.e||'')+x.n && !st.goalCats.some((y,j)=> j!==i && (y.n===v || (y.e||'')+y.n===v))){
+      x.n = v; x.e = '';
+      get('year').goals.forEach(g=>{ if (g.cat===old) g.cat = v; });
+      if (yearFilter===old) yearFilter = v;
+      save('year'); save('settings');
+    }
+  } else {
+    const list = st[kind], old = list[i];
+    if (old!=null && v!==old && !list.includes(v)){
+      list[i] = v; save('settings');
+      if (kind==='expCats' && eCat===old) eCat = v;
+      if (kind==='payMethods' && ePay===old) ePay = v;
+      renameInDays(kind==='expCats' ? 'cat' : 'pay', old, v).then(()=>{ if (cur.view==='day') safeRender(); });
+    }
+  }
+  render();
+}
+const GEAR = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+// 2027 관공서 공휴일 (우주항공청 2027년 월력요항 기준)
+const HOLIDAYS = {'2027-01-01':'신정','2027-02-06':'설날 연휴','2027-02-07':'설날','2027-02-08':'설날 연휴','2027-02-09':'대체공휴일','2027-03-01':'삼일절','2027-05-01':'노동절','2027-05-03':'대체공휴일','2027-05-05':'어린이날','2027-05-13':'부처님오신날','2027-06-06':'현충일','2027-07-17':'제헌절','2027-07-19':'대체공휴일','2027-08-15':'광복절','2027-08-16':'대체공휴일','2027-09-14':'추석 연휴','2027-09-15':'추석','2027-09-16':'추석 연휴','2027-10-03':'개천절','2027-10-04':'대체공휴일','2027-10-09':'한글날','2027-10-11':'대체공휴일','2027-12-25':'성탄절','2027-12-27':'대체공휴일'};
+const MON3 = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const MONFULL = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const DOW = ['월','화','수','목','금','토','일'];
+const LS = 'planner2027:';
+const app = document.getElementById('app');
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseIso = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const mondayOf = d => addDays(d, -((d.getDay()+6)%7));
+const md = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+// 주차 규칙: 월요일 시작, 그 주의 목요일이 속한 달의 주차로 계산 (달마다 4~5주)
+function weeksOfMonth(m){
+  const out = []; let mon = mondayOf(new Date(YEAR, m-1, 1));
+  const last = new Date(YEAR, m, 0);
+  while (mon <= last){
+    const thu = addDays(mon,3);
+    if (thu.getFullYear()===YEAR && thu.getMonth()===m-1) out.push(mon);
+    mon = addDays(mon,7);
+  }
+  return out;
+}
+const ALL_WEEKS = []; for (let m=1;m<=12;m++) ALL_WEEKS.push(...weeksOfMonth(m));
+const FIRST_WEEK = iso(ALL_WEEKS[0]), LAST_WEEK = iso(ALL_WEEKS[ALL_WEEKS.length-1]);
+function weekInfo(monIso){
+  const mon = parseIso(monIso), thu = addDays(mon,3), m = thu.getMonth()+1;
+  const idx = weeksOfMonth(m).findIndex(w => iso(w)===monIso) + 1;
+  const n = ALL_WEEKS.findIndex(w => iso(w)===monIso) + 1;
+  return {mon, sun:addDays(mon,6), month:m, idx, n};
+}
+function todayTargets(){
+  const t = new Date();
+  if (t.getFullYear() < YEAR) return {month:1, week:FIRST_WEEK, day:`${YEAR}-01-01`, pre:true};
+  if (t.getFullYear() > YEAR) return {month:12, week:LAST_WEEK, day:`${YEAR}-12-31`, post:true};
+  let w = iso(mondayOf(t));
+  if (w < FIRST_WEEK) w = FIRST_WEEK; if (w > LAST_WEEK) w = LAST_WEEK;
+  return {month:t.getMonth()+1, week:w, day:iso(t)};
+}
+
+/* ---------- store: 이 기기(localStorage) + 클라우드(db, 사용자별 비공개) ---------- */
+const cache = {}, remoteState = {}, writing = {}, again = {}, timers = {};
+let db = null, me = null, mode = 'connecting', viewKeys = new Set();
+function defaults(key){
+  if (key==='year') return {goals:[]};
+  if (key[0]==='m') return {days:{}, goals:[], todos:[], weekMemos:{}};
+  if (key==='settings') return {goalCats:JSON.parse(JSON.stringify(DEFAULT_GCATS)), expCats:['외식','간식','장보기','교통','병원비','쇼핑','생활용품','문화','경조사','기타'], payMethods:['현금','계좌이체','체크카드','신용카드']};
+  if (key[0]==='d') return {sleep:{bed:'',wake:''}, meals:{b:'',l:'',d:'',s:''}, cond:{score:0,note:''}, contents:[], screen:{h:'',m:''}};
+  return {routines:[], kpt:{keep:'',problem:'',try:'',etc:''}};
+}
+function get(key){
+  viewKeys.add(key);
+  if (!cache[key]){
+    let v = null; try { v = JSON.parse(localStorage.getItem(LS+key)); } catch(e){}
+    cache[key] = Object.assign(defaults(key), v || {});
+    if (db) fetchRemote(key);
+  }
+  return cache[key];
+}
+function save(key){
+  try { localStorage.setItem(LS+key, JSON.stringify(cache[key])); } catch(e){}
+  if (remoteState[key] !== 'done') remoteState[key + ':edited'] = true;
+  if (!db) return;
+  clearTimeout(timers[key]); setSync('busy');
+  timers[key] = setTimeout(() => writeRemote(key), 700);
+}
+const ref = key => db.collection('data/users/' + me).doc(key);
+async function fetchRemote(key){
+  if (remoteState[key]) return; remoteState[key] = 'loading';
+  try {
+    const snap = await ref(key).get();
+    remoteState[key] = 'done';
+    if (snap.exists && !remoteState[key + ':edited']){
+      cache[key] = Object.assign(defaults(key), JSON.parse(JSON.stringify(snap.data())));
+      try { localStorage.setItem(LS+key, JSON.stringify(cache[key])); } catch(e){}
+      if (viewKeys.has(key)) safeRender();
+    } else if (JSON.stringify(cache[key]) !== JSON.stringify(defaults(key))) {
+      writeRemote(key);
+    }
+  } catch(e){ remoteState[key] = 'done'; }
+}
+async function writeRemote(key, retried){
+  if (writing[key]){ again[key] = true; return; }
+  writing[key] = true;
+  try { await ref(key).set(JSON.parse(JSON.stringify(cache[key]))); setSync('ok'); }
+  catch(e){
+    if (e && e.code==='unavailable' && !retried){ writing[key]=false; setTimeout(()=>writeRemote(key,true), 800+Math.random()*800); return; }
+    setSync('err');
+  }
+  writing[key] = false;
+  if (again[key]){ again[key] = false; writeRemote(key); }
+}
+function setSync(s){
+  mode = s;
+  const el = document.getElementById('sync');
+  const txt = {connecting:'연결 중…', ok:'저장됨', busy:'저장 중…', err:'클라우드 저장 실패 · 이 기기에 보관', local:'이 기기에 저장됨'}[s];
+  el.className = 'sync ' + ({ok:'ok',busy:'busy',err:'err'}[s]||'');
+  el.querySelector('span').textContent = txt; el.title = txt;
+}
+async function connect(){
+  const timeout = setTimeout(()=>{ if(!db) setSync('local'); }, 10000);
+  try {
+    if (!window.claude || !window.claude.use){ clearTimeout(timeout); setSync('local'); return; }
+    const [d, u] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if (!d || !u){ clearTimeout(timeout); setSync('local'); return; }
+    const id = await u.id();
+    clearTimeout(timeout);
+    if (!id){ setSync('local'); return; }
+    db = d; me = id; setSync('ok');
+    Object.keys(cache).forEach(fetchRemote);
+  } catch(e){ clearTimeout(timeout); setSync('local'); }
+}
+let pendingRender = false;
+function safeRender(){
+  const a = document.activeElement;
+  if (a && app.contains(a) && (a.tagName==='TEXTAREA' || a.isContentEditable || (a.tagName==='INPUT' && a.type==='text'))){
+    if (!pendingRender){ pendingRender = true; a.addEventListener('blur', ()=>{ pendingRender=false; render(); }, {once:true}); }
+  } else render();
+}
+
+/* ---------- views ---------- */
+let yearFilter = '전체';
+const openAcc = new Set();
+function catTag(c){ const bg = PAL[catInfo(c).c % PAL.length].bg; return bg ? `<span class="tag" style="background:${bg};color:#1a1a1a">${esc(catLabel(c))}</span>` : `<span class="tag">${esc(catLabel(c))}</span>`; }
+
+function viewHome(){
+  const t = todayTargets(), wi = weekInfo(t.week), now = new Date();
+  return `
+  <div class="hero">
+    <div class="big">2027</div>
+    <div class="today">오늘 ${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} (${DOW[(now.getDay()+6)%7]})</div>
+  </div>
+  <div class="shortcuts">
+    <a class="sc" href="#year"><div class="eyebrow">Yearly</div><div class="t">2027</div><div class="go">→</div></a>
+    <a class="sc" href="#month-${t.month}"><div class="eyebrow">Monthly</div><div class="t">${MON3[t.month-1]}</div><div class="go">→</div></a>
+    <a class="sc" href="#week-${t.week}"><div class="eyebrow">Weekly</div><div class="t">W${pad(wi.n)}</div><div class="go">→</div></a>
+    <a class="sc" href="#day-${t.day}"><div class="eyebrow">Daily</div><div class="t">${+t.day.slice(5,7)}/${+t.day.slice(8)}</div><div class="go">→</div></a>
+  </div>`;
+}
+
+function monthGridHTML(){
+  const y = get('year');
+  return MON3.map((m,i)=>{
+    const gs = y.goals.filter(g=>g.months[i]);
+    return `<a class="mbox" href="#month-${i+1}" aria-label="${i+1}월 Monthly로 이동"><h4><b>${m}</b><span>${gs.length ? `${gs.filter(g=>g.dm&&g.dm[i]).length}/${gs.length}` : '0개'}</span></h4>
+      ${gs.length ? `<ul>${gs.map(g=>`<li class="${g.dm&&g.dm[i]?'done':''}"><span class="dot" style="background:${catDot(g.cat)}"></span><span>${esc(g.text)}</span></li>`).join('')}</ul>` : NOGOAL}<span class="mgo" aria-hidden="true">→</span></a>`;
+  }).join('');
+}
+function viewYear(){
+  const y = get('year');
+  const vis = y.goals.filter(g => yearFilter==='전체' || g.cat===yearFilter);
+  const CATS = gcats().map(x=>x.n);
+  if (yearFilter!=='전체' && !CATS.includes(yearFilter)) yearFilter = '전체';
+  const defCat = yearFilter==='전체' ? CATS[0] : yearFilter;
+  return `
+  <div class="phead"><div class="ttl"><h1>2027</h1></div></div>
+  <section class="card">
+    <form class="goal-form" data-form="goal">
+      <select class="field" id="goalCat">${CATS.map(c=>`<option value="${esc(c)}"${c===defCat?' selected':''}>${esc(catLabel(c))}</option>`).join('')}</select>
+      <input class="field" type="text" id="goalText" autocomplete="off">
+      <button class="btn">추가</button>
+    </form>
+    <div class="chips">${['전체',...CATS].map(c=>`<button class="chip${c===yearFilter?' on':''}" data-act="filter" data-v="${esc(c)}">${c==='전체'?c:esc(catLabel(c))}${c==='전체'?` ${y.goals.length}`:` ${y.goals.filter(g=>g.cat===c).length}`}</button>`).join('')}<button type="button" class="gear ${gEdit?'on':''}" data-act="gedit" aria-label="카테고리 편집">${GEAR}</button></div>
+    ${gEdit ? `<div class="emgr gmgr"><div class="mchips">${gcats().map((x,i)=> isRen('goalCats',i) ? renInput('goalCats',i,(x.e||'')+x.n) : `<span class="mchip"><button type="button" class="cdot" style="background:${PAL[x.c%PAL.length].dot}" data-act="gcolor" data-i="${i}" aria-label="색 바꾸기"></button><button type="button" class="mname" data-act="ren" data-kind="goalCats" data-i="${i}">${esc((x.e||'')+x.n)}</button><button type="button" class="x" data-act="gdel" data-i="${i}" aria-label="${esc(x.n)} 삭제">×</button></span>`).join('')}
+      <form class="optadd" data-form="gcat"><input class="ln" type="text" aria-label="카테고리 추가" autocomplete="off"><button class="addbtn sm" aria-label="추가">+</button></form></div></div>` : ''}
+    ${vis.length ? `<div class="gt-wrap"><table class="gt">
+      <thead><tr><th></th><th class="l">카테고리</th><th class="l">목표</th><th>전체</th>${MON3.map((m,i)=>`<th>${i+1}월</th>`).join('')}<th class="gr">달성률</th><th></th></tr></thead>
+      <tbody id="goalBody">${vis.map(g=>`<tr data-id="${g.id}">
+        <td class="handle">⋮⋮</td>
+        <td class="l" style="width:118px">${catTag(g.cat)}</td>
+        <td class="l"><input class="bare" type="text" value="${esc(g.text)}" data-goal-text="${g.id}"></td>
+        <td class="m all"><input type="checkbox" ${g.months.every(Boolean)?'checked':''} data-goal-all="${g.id}" data-some="${g.months.some(Boolean)&&!g.months.every(Boolean)?1:0}" aria-label="전체 월"></td>
+        ${g.months.map((v,i)=>`<td class="m"><span class="mc ${v?'on':''} ${v&&g.dm&&g.dm[i]?'ach':''}" data-gm="${g.id}" data-i="${i}" role="checkbox" aria-checked="${v}" tabindex="0" aria-label="${i+1}월${v&&g.dm&&g.dm[i]?' (달성)':''}"></span></td>`).join('')}
+        <td class="gr">${(()=>{ const plan = g.months.filter(Boolean).length; if (!plan) return '<span class="muted">—</span>'; const done = g.months.filter((v,i)=>v&&g.dm&&g.dm[i]).length, p = Math.round(done/plan*100); return `<b>${p}%</b><small>${done}/${plan}</small><span class="rbar"><i style="width:${p}%"></i></span>`; })()}</td>
+        <td style="width:34px"><button class="x" data-act="delGoal" data-id="${g.id}" aria-label="삭제">×</button></td></tr>`).join('')}</tbody>
+    </table></div>` : NOGOAL}
+  </section>
+  <section class="card"><div class="mgrid" id="monthGrid">${monthGridHTML()}</div></section>`;
+}
+
+function viewMonth(m, tab){
+  tab = tab || 'plan';
+  const key = 'm'+pad(m), d = get(key), t = iso(new Date());
+  d.kpt = d.kpt || {keep:'',problem:'',try:'',etc:''};
+  const first = new Date(YEAR,m-1,1), last = new Date(YEAR,m,0);
+  const sfx = tab==='plan' ? '' : '-'+tab;
+  const goalsTodo = `
+      <div class="card"><h3>목표${goalRateHTML(m)}</h3>${monthGoalsHTML(m)}</div>
+      <div class="card rte-wrap"><h3>Memo <span class="wsec-r">${rteBar()}</span></h3>${monthMemoHTML(m)}</div>`;
+  let main = '';
+  if (tab==='plan'){
+    let rows = '', mon = mondayOf(first);
+    while (mon <= last){
+      let cells = '';
+      for (let i=0;i<7;i++){
+        const day = addDays(mon,i), inM = day.getMonth()===m-1 && day.getFullYear()===YEAR;
+        const hol = HOLIDAYS[iso(day)];
+        const cls = ['cell', i===5?'sa':'', i===6?'su':'', hol?'hol':'', inM?'':'out', iso(day)===t?'today':''].join(' ');
+        const head = `<div class="ch"><span class="n">${day.getDate()}</span>${hol?`<span class="hn" title="${hol}">${hol}</span>`:''}</div>`;
+        cells += inM ? `<div class="${cls}">${head}<textarea data-day="${day.getDate()}" aria-label="${m}월 ${day.getDate()}일 일정">${esc(d.days[day.getDate()]||'')}</textarea></div>`
+                     : `<div class="${cls}">${head}</div>`;
+      }
+      rows += `<div class="cal-row">${cells}</div>`; mon = addDays(mon,7);
+    }
+    main = `<div class="cal">
+      <div class="cal-h">${['MON','TUE','WED','THU','FRI','SAT','SUN'].map((x,i)=>`<div class="${i===5?'sa':i===6?'su':''}">${x}</div>`).join('')}</div>
+      ${rows}
+    </div>`;
+  } else if (tab==='weeks'){
+    const weeks = weeksOfMonth(m);
+    main = `<div class="wmemos big" style="--wn:${weeks.length}">${weeks.map((w,i)=>{ const k=iso(w); return `<div class="wm rte-wrap">
+      <div class="h"><b>${i+1}주차 <span class="muted" style="font-weight:400">${md(w)} – ${md(addDays(w,6))}</span></b><a href="#week-${k}">Weekly →</a></div>
+      <div class="wsec-h"><span>일정</span></div>
+      <div class="wsched">${schedHTML(w)}</div>
+      ${(get('w'+k).goals||[]).length ? `<div class="wsec-h"><span>목표</span></div><div class="wgl">${weekGoalListHTML(k)}</div>` : ''}
+      <div class="wsec-h"><span>계획</span><span class="wsec-r">${rteBar(true)}</span></div>
+      <div class="rte plan" contenteditable="true" spellcheck="false" data-wmemo="${k}" aria-label="${i+1}주차 계획">${memoHTML(d.weekMemos[k])}</div></div>`; }).join('')}</div>`;
+    main = `<div class="wscroll">${main}</div>${goalPanelHTML(m)}`;
+  } else {
+    main = `${spendHTML(Array.from({length:last.getDate()}, (_,i)=>new Date(YEAR,m-1,i+1)), `${m}월 지출`)}
+    <section class="card"><h2 class="sec">${m}월 회고</h2>
+      <div class="kpt">
+        ${[['keep','Keep'],['problem','Problem'],['try','Try'],['etc','etc']].map(([kk,l])=>{ const v=d.kpt[kk]||''; return `
+        <details class="acc" data-acc="m-${kk}"${openAcc.has('m-'+kk)?' open':''}>
+          <summary><span class="al">${l}</span><span class="ap">${esc(v.split('\n')[0])}</span><span class="chev" aria-hidden="true"></span></summary>
+          <textarea data-mkpt="${kk}" aria-label="${l}">${esc(v)}</textarea>
+        </details>`; }).join('')}
+      </div>
+    </section>`;
+  }
+  const tabs = [['plan','월간계획'],['weeks','주차별 계획'],['review','회고']];
+  return `
+  <div class="mshell">
+    <div class="mcontent">
+      <div class="phead"><div class="ttl">
+        <div class="trow"><h1 class="hm" aria-label="${m}월">${m}</h1>
+          <span class="arrows"><a class="arrow ${m===1?'off':''}" href="#month-${m-1}${sfx}" aria-label="지난 달">‹</a><a class="arrow ${m===12?'off':''}" href="#month-${m+1}${sfx}" aria-label="다음 달">›</a></span></div></div>
+      </div>
+      <nav class="mtabs">${tabs.map(([k,l])=>`<a class="${k===tab?'on':''}" href="#month-${m}${k==='plan'?'':'-'+k}">${l}</a>`).join('')}${tab==='weeks' ? `<button type="button" class="monbtn gtoggle${gpOpen?' on':''}" data-act="gptoggle" title="목표 보기 (G)">목표</button>` : ''}</nav>
+      ${tab==='review' ? `<div class="mmain">${main}</div>` : tab==='weeks' ? `<div class="mmain">${main}</div>` : `<div class="mlayout">
+        <aside class="side">${goalsTodo}</aside>
+        <div class="mmain">${main}</div>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function viewWeek(k, tab){
+  tab = tab || 'plan'; const sfx = tab==='review' ? '-review' : '';
+  const wi = weekInfo(k), wkKey = 'w'+k, w = get(wkKey), mdoc = get('m'+pad(wi.month));
+  const prev = iso(addDays(wi.mon,-7)), next = iso(addDays(wi.mon,7));
+  const prevDoc = k>FIRST_WEEK ? get('w'+prev) : null;
+  const planHTML = () => `<div class="w3">
+    <section class="card"><h2 class="sec">일정</h2>${schedHTML(wi.mon)}</section>
+    <section class="card wgc"><h2 class="sec">목표${monBtn(wi.month,'goals')}</h2>${weekGoalListHTML(k)}</section>
+    <section class="card rte-wrap"><h2 class="sec">할 일<span class="wsec-r">${monBtn(wi.month,'todos')}${rteBar(true)}</span></h2>
+      <div class="rte wtodo" contenteditable="true" spellcheck="false" data-wmemo="${k}" aria-label="이번 주 할 일">${memoHTML(mdoc.weekMemos[k])}</div>
+    </section>
+  </div>
+  <div class="wroutine">
+    <section class="card"><h2 class="sec">Routine <small>${w.routines.length ? `${Math.round(w.routines.reduce((a,r)=>a+r.checks.filter(Boolean).length,0) / w.routines.reduce((a,r)=>a+r.n,0) * 100)}%` : ''}</small></h2>
+      ${w.routines.length ? `<ul class="rlist">${w.routines.map(r=>{ const c=r.checks.filter(Boolean).length; return `<li>
+        <span class="rt">${esc(r.text)}</span>
+        <span class="rchecks">${r.checks.map((v,i)=>`<input type="checkbox" ${v?'checked':''} data-rt="${r.id}" data-i="${i}" aria-label="${i+1}회차">`).join('')}</span>
+        <span class="rprog">${c}/${r.n}</span>
+        <button class="x" data-act="delRoutine" data-id="${r.id}">×</button></li>`; }).join('')}</ul>`
+        : NORT + (prevDoc && prevDoc.routines.length ? `<div style="margin-bottom:12px"><button class="btn ghost" style="padding:5px 12px;font-size:13px" data-act="copyRoutines" data-from="${prev}">지난주 루틴 가져오기</button></div>` : '')}
+      <form class="rform" data-form="routine">
+        <input class="field t" type="text" id="rText" autocomplete="off">
+        <input class="field n" type="number" id="rNum" min="1" max="7" value="7" aria-label="횟수 (최대 7)">
+        <button class="btn">입력</button>
+      </form>
+    </section>
+  </div>`;
+  const reviewHTML = () => `${weekStatsHTML(wi, w, mdoc.weekMemos[k])}
+  ${weekLogHTML(wi)}
+  <div class="wrow2">${spendHTML([0,1,2,3,4,5,6].map(i=>addDays(wi.mon,i)), '이번 주 지출')}
+  <section class="card wrev"><h2 class="sec">주간 회고</h2>
+    <div class="kpt">
+      ${[['keep','Keep'],['problem','Problem'],['try','Try'],['etc','etc']].map(([kk,l])=>{ const v=w.kpt[kk]||''; return `
+      <details class="acc" data-acc="${kk}"${openAcc.has(kk)?' open':''}>
+        <summary><span class="al">${l}</span><span class="ap">${esc(v.split('\n')[0])}</span><span class="chev" aria-hidden="true"></span></summary>
+        <textarea data-kpt="${kk}" aria-label="${l}">${esc(v)}</textarea>
+      </details>`; }).join('')}
+    </div>
+  </section>
+  </div>`;
+  return `
+  <div class="phead"><div class="ttl">
+    <div class="trow"><h1 class="hw">${wi.month}월 ${wi.idx}주차</h1>
+      <span class="arrows"><a class="arrow ${k<=FIRST_WEEK?'off':''}" href="#week-${prev}${sfx}" aria-label="지난 주">‹</a><a class="arrow ${k>=LAST_WEEK?'off':''}" href="#week-${next}${sfx}" aria-label="다음 주">›</a></span></div>
+    <div class="sub">${wi.mon.getMonth()+1}.${wi.mon.getDate()} (월) – ${wi.sun.getMonth()+1}.${wi.sun.getDate()} (일)<a href="#month-${wi.month}">${MON3[wi.month-1]} Monthly →</a></div></div>
+  </div>
+  <nav class="mtabs">${[['plan','주간계획'],['review','회고']].map(([t,l])=>`<a class="${t===tab?'on':''}" href="#week-${k}${t==='plan'?'':'-'+t}">${l}</a>`).join('')}</nav>
+  ${tab==='plan' ? planHTML() : reviewHTML()}`;
+}
+
+/* ---------- Daily ---------- */
+const FIRST_DAY = `${YEAR}-01-01`, LAST_DAY = `${YEAR}-12-31`;
+const COND = ['','😫','😕','😐','🙂','😄'];
+const CTYPES = ['영화','드라마','예능','애니','다큐','책','웹툰','유튜브','기타'];
+let cType = CTYPES[0];
+const EKINDS = ['생활비','EVENT'];
+let eKind = EKINDS[0], eCat = null, ePay = null, eEdit = false;
+const won = n => (Math.round(n)||0).toLocaleString('ko-KR');
+const daySpend = d => (d && d.exps ? d.exps.reduce((a,e)=>a+e.amt,0) : 0);
+function dayDoc(ds){ const d = get('d'+ds); d.sleep = d.sleep||{bed:'',wake:''}; d.meals = d.meals||{}; d.cond = d.cond||{score:0,note:''}; d.contents = d.contents||[]; d.screen = d.screen||{h:'',m:''}; return d; }
+function sleepMin(sl){
+  if (!sl || !sl.bed || !sl.wake) return null;
+  const [bh,bm] = sl.bed.split(':').map(Number), [wh,wm] = sl.wake.split(':').map(Number);
+  let m = (wh*60+wm) - (bh*60+bm); if (m <= 0) m += 1440; return m;
+}
+function screenMin(sc){ if (!sc) return null; const h = +sc.h||0, m = +sc.m||0; return (sc.h===''&&sc.m==='') || (sc.h==null&&sc.m==null) ? null : h*60+m; }
+const NOGOAL = '<div class="empty soft">아직 등록된 목표가 없어요</div>', NORT = '<div class="empty soft">아직 등록된 루틴이 없어요</div>';
+const hm = m => m==null ? '—' : `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}`;
+const hmShort = m => m==null ? '—' : `${Math.floor(m/60)}h${m%60 ? ` ${pad(m%60)}m` : ''}`;
+function viewDay(ds){
+  const d = dayDoc(ds), dt = parseIso(ds), dow = (dt.getDay()+6)%7;
+  const prev = iso(addDays(dt,-1)), next = iso(addDays(dt,1));
+  let wk = iso(mondayOf(dt)); const inWeeks = wk >= FIRST_WEEK && wk <= LAST_WEEK;
+  if (wk < FIRST_WEEK) wk = FIRST_WEEK; if (wk > LAST_WEEK) wk = LAST_WEEK;
+  const wi = weekInfo(wk), sm = sleepMin(d.sleep);
+  const rts = inWeeks ? get('w'+wk).routines : [];
+  d.rt = d.rt || {};
+  return `
+  <div class="phead"><div class="ttl">
+    <div class="trow"><h1 class="hd">${dt.getMonth()+1}월 ${dt.getDate()}일<span>${DOW[dow]}요일</span></h1>
+      <span class="arrows"><a class="arrow ${ds<=FIRST_DAY?'off':''}" href="#day-${prev}" aria-label="전날">‹</a><a class="arrow ${ds>=LAST_DAY?'off':''}" href="#day-${next}" aria-label="다음날">›</a></span></div>
+    <div class="sub"><a href="#week-${wk}" style="margin-left:0">${wi.month}월 ${wi.idx}주차 Weekly →</a><a href="#month-${dt.getMonth()+1}">${MON3[dt.getMonth()]} Monthly →</a></div></div>
+  </div>
+  <div class="dday">
+  <div class="dtoday">
+    <section class="dt"><h3><span class="di">📅</span>일정${HOLIDAYS[ds] ? `<span class="dhol">${HOLIDAYS[ds]}</span>` : ''}<a class="more" href="#month-${dt.getMonth()+1}" aria-label="Monthly로">→</a></h3>
+      <textarea class="dsched" data-wday="${ds}" aria-label="오늘 일정">${esc(get('m'+pad(dt.getMonth()+1)).days[dt.getDate()]||'')}</textarea>
+    </section>
+    <section class="dt rte-wrap"><h3><span class="di">✅</span>이번 주 할 일${inWeeks ? `<span class="wsec-r">${rteBar(true)}</span>` : ''}</h3>
+      ${inWeeks ? `${(()=>{ const wg = (get('w'+wk).goals||[]); return wg.length ? `<div class="dwg">${wg.map(g=>`<span class="${g.done?'done':''}">${esc(g.text)}</span>`).join('')}</div>` : ''; })()}
+      <div class="rte dtodo" contenteditable="true" spellcheck="false" data-wmemo="${wk}" aria-label="이번 주 할 일">${memoHTML(get('m'+pad(weekInfo(wk).month)).weekMemos[wk])}</div>` : '<span class="muted" style="font-size:13px">—</span>'}
+    </section>
+  </div>
+  <section class="dt dlog">
+    <div class="lr"><div class="lk"><span class="di">🌙</span>수면</div><div class="lv">
+      <input class="ln" type="time" value="${esc(d.sleep.bed)}" data-dset="sleep.bed" aria-label="취침"><span class="muted">→</span><input class="ln" type="time" value="${esc(d.sleep.wake)}" data-dset="sleep.wake" aria-label="기상">${sm==null ? '' : `<span class="lsum in">${hm(sm)}</span>`}
+    </div></div>
+    <div class="lr"><div class="lk"><span class="di">🙂</span>컨디션</div><div class="lv">
+      <span class="conds">${[1,2,3,4,5].map(n=>`<button class="cond ${d.cond.score===n?'on':''}" data-act="cond" data-v="${n}" aria-label="${n}점">${COND[n]}</button>`).join('')}</span>
+      <input class="ln grow" type="text" value="${esc(d.cond.note)}" data-dset="cond.note" aria-label="컨디션 메모" autocomplete="off">
+    </div></div>
+    <div class="lr"><div class="lk"><span class="di">📱</span>스크린타임</div><div class="lv">
+      <span class="inl"><input class="ln num" type="number" min="0" max="24" inputmode="numeric" value="${esc(d.screen.h)}" data-dset="screen.h" aria-label="시간"><small>시간</small></span>
+      <span class="inl"><input class="ln num" type="number" min="0" max="59" inputmode="numeric" value="${esc(d.screen.m)}" data-dset="screen.m" aria-label="분"><small>분</small></span>
+    </div></div>
+    <div class="lr"><div class="lk"><span class="di">🍽️</span>식단</div><div class="lv meals4">
+      ${[['b','아침'],['l','점심'],['d','저녁'],['s','간식']].map(([k,l])=>`<span class="inl"><small>${l}</small><input class="ln grow" type="text" value="${esc(d.meals[k]||'')}" data-dset="meals.${k}" aria-label="${l}" autocomplete="off"></span>`).join('')}
+    </div></div>
+    <div class="lr"><div class="lk"><span class="di">🔁</span>Routine</div><div class="lv rtrow">
+      ${!inWeeks ? '<span class="muted">—</span>' : rts.length ? rts.map(r=>{ const done=r.checks.filter(Boolean).length, mine=!!d.rt[r.id], full = done>=r.n && !mine; return `<label class="rtd ${mine?'on':''} ${full?'full':''}"><input type="checkbox" ${mine?'checked':''} ${full?'disabled':''} data-drt="${r.id}"><span>${esc(r.text)}</span><small>${done}/${r.n}</small></label>`; }).join('') : NORT.replace('<div class="empty soft">', `<a class="empty soft" href="#week-${wk}">`).replace('</div>','</a>')}
+    </div></div>
+    ${expHTML(d, true)}
+    <div class="lr"><div class="lk"><span class="di">🎬</span>콘텐츠</div><div class="lv col">
+      ${d.contents.map(c=>`<div class="cline"><span class="ctype">${esc(c.type)}</span><span class="ctitle">${esc(c.title)}</span><span class="cnote2">${esc(c.note!=null ? c.note : [c.platform,c.review].filter(Boolean).join(' · '))}</span><button class="x" data-act="delContent" data-id="${c.id}" aria-label="삭제">×</button></div>`).join('')}
+      <form class="cadd" data-form="content">
+        <select class="ln" id="cType" aria-label="종류">${CTYPES.map(t=>`<option${t===cType?' selected':''}>${t}</option>`).join('')}</select>
+        <span class="inl grow"><small>제목</small><input class="ln grow" type="text" id="cTitle" autocomplete="off"></span>
+        <span class="inl grow"><small>비고</small><input class="ln grow" type="text" id="cNote" autocomplete="off"></span>
+        <button class="addbtn" aria-label="추가">+</button>
+      </form>
+    </div></div>
+  </section>
+  </div>`;
+}
+function expHTML(d, row){
+  const st = get('settings'), exps = d.exps || [];
+  const cats = st.expCats, pays = st.payMethods;
+  if (!eCat || !cats.includes(eCat)) eCat = cats[0] || '';
+  if (!ePay || !pays.includes(ePay)) ePay = pays[0] || '';
+  const tot = daySpend(d), byKind = k => exps.filter(e=>e.kind===k).reduce((a,e)=>a+e.amt,0);
+  const chips = (list, kind) => `<div class="mchips">${list.map((v,i)=> isRen(kind,i) ? renInput(kind,i,v) : `<span class="mchip"><button type="button" class="mname" data-act="ren" data-kind="${kind}" data-i="${i}">${esc(v)}</button><button type="button" class="x" data-act="delOpt" data-kind="${kind}" data-i="${i}" aria-label="${esc(v)} 삭제">×</button></span>`).join('')}
+      <form class="optadd" data-form="opt" data-kind="${kind}"><input class="ln" type="text" aria-label="추가" autocomplete="off"><button class="addbtn sm" aria-label="추가">+</button></form></div>`;
+  return `${row ? `<div class="lr dt-exp"><div class="lk"><span class="di">💳</span>지출${tot ? `<span class="lsum">${won(tot)}원</span>` : ''}</div><div class="lv col">` : `<section class="dt dt-exp"><h3><span class="di">💳</span>지출${tot ? `<span class="dtot">${won(tot)}원</span>` : ''}</h3><div class="dv col">`}
+      ${exps.map(e=>`<div class="eline"><span class="ekind ${e.kind==='EVENT'?'ev':''}">${esc(e.kind)}</span><span class="ecat">${esc(e.cat)}</span><span class="etext">${esc(e.text)}</span><span class="epay">${esc(e.pay)}</span><span class="eamt">${won(e.amt)}</span><button class="x" data-act="delExp" data-id="${e.id}" aria-label="삭제">×</button></div>`).join('')}
+      ${exps.length && byKind('EVENT') ? `<div class="esum">생활비 ${won(byKind('생활비'))} · EVENT ${won(byKind('EVENT'))}</div>` : ''}
+      <form class="eadd" data-form="exp">
+        <span class="kseg">${EKINDS.map(k=>`<button type="button" class="${eKind===k?'on':''}" data-act="ekind" data-v="${k}">${k}</button>`).join('')}</span>
+        <select class="ln" id="eCat" aria-label="카테고리">${cats.map(c=>`<option${c===eCat?' selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select class="ln" id="ePay" aria-label="결제수단">${pays.map(c=>`<option${c===ePay?' selected':''}>${esc(c)}</option>`).join('')}</select>
+        <span class="inl grow"><small>내용</small><input class="ln grow" type="text" id="eText" autocomplete="off"></span>
+        <span class="inl"><input class="ln amt" type="text" inputmode="numeric" id="eAmt" aria-label="금액" autocomplete="off"><small>원</small></span>
+        <button class="addbtn" aria-label="추가">+</button>
+        <button type="button" class="gear ${eEdit?'on':''}" data-act="eedit" aria-label="카테고리·결제수단 편집">${GEAR}</button>
+      </form>
+      ${eEdit ? `<div class="emgr"><div class="mrow"><small>카테고리</small>${chips(cats,'expCats')}</div><div class="mrow"><small>결제수단</small>${chips(pays,'payMethods')}</div></div>` : ''}
+    </div>${row ? '</div>' : '</section>'}`;
+}
+function spendHTML(dates, title){
+  const exps = [];
+  dates.forEach(d=>{ if (d.getFullYear()!==YEAR) return; const dd = dayDoc(iso(d)); (dd.exps||[]).forEach(e=>exps.push(e)); });
+  const tot = exps.reduce((a,e)=>a+e.amt,0);
+  const by = {}; exps.forEach(e=>{ const k = e.cat || '기타'; by[k] = (by[k]||0) + e.amt; });
+  const rows = Object.entries(by).sort((a,b)=>b[1]-a[1]), max = rows.length ? rows[0][1] : 1;
+  const ev = exps.filter(e=>e.kind==='EVENT').reduce((a,e)=>a+e.amt,0);
+  return `<section class="card spend"><h2 class="sec">${title}</h2>
+    ${tot ? `<div class="stot"><div class="st-main"><span>합계</span><b>${won(tot)}<small>원</small></b></div>${ev ? `<div class="st-sub"><span>생활비</span><b>${won(tot-ev)}<small>원</small></b></div><div class="st-sub"><span>EVENT</span><b>${won(ev)}<small>원</small></b></div>` : ''}</div>` : ''}
+    ${rows.length ? `<div class="vwrap"><div class="vbars" style="grid-template-columns:repeat(${rows.length},minmax(52px,120px))">${rows.map(([c,v])=>`<div class="vb"><span class="vcol"><i style="height:${Math.max(2, v/max*100)}%"><em>${won(v)}</em></i></span><span class="vn" title="${esc(c)}">${esc(c)}</span><span class="vp">${Math.round(v/tot*100)}%</span></div>`).join('')}</div></div>` : `<div class="empty">—</div>`}
+  </section>`;
+}
+function schedHTML(mon){
+  const rows=[]; for(let i=0;i<7;i++){ const d=addDays(mon,i); if(d.getFullYear()!==YEAR) continue; const mm=d.getMonth()+1, t=(get('m'+pad(mm)).days[d.getDate()]||'').split('\n').map(x=>x.trim()).filter(Boolean);
+    const hol = HOLIDAYS[iso(d)];
+    if (t.length) rows.push(`<a class="srow ${i===5?'sat':''} ${i===6||hol?'we':''}" href="#month-${mm}"><span class="sd">${mm}/${d.getDate()} (${DOW[i]})</span><span class="st">${t.map(esc).join('<br>')}</span></a>`); }
+  return rows.length ? `<div class="slist">${rows.join('')}</div>` : `<div class="empty">—</div>`;
+}
+function monthGoalsHTML(m){
+  const d = get('m'+pad(m)), yg = get('year').goals.filter(g=>g.months[m-1]);
+  return `${yg.length ? `<ul class="list ylist">${yg.map(g=>`<li class="${g.dm&&g.dm[m-1]?'done':''}"><input type="checkbox" ${g.dm&&g.dm[m-1]?'checked':''} data-ygdone="${g.id}" data-m="${m}" aria-label="이번 달 달성"><span class="dot" style="background:${catDot(g.cat)}"></span><span class="yg">${esc(g.text)}</span><button class="x" data-act="unYear" data-m="${m}" data-id="${g.id}" aria-label="이 달 목표에서 삭제">×</button></li>`).join('')}</ul>` : ''}
+    ${!yg.length && !d.goals.length ? NOGOAL : ''}<ul class="list">${d.goals.map(g=>`<li class="${g.done?'done':''}"><input type="checkbox" ${g.done?'checked':''} data-mgdone="${g.id}" data-m="${m}" aria-label="달성"><input class="bare" type="text" value="${esc(g.text)}" data-mgoal="${g.id}" data-m="${m}"><button class="x" data-act="delMGoal" data-m="${m}" data-id="${g.id}">×</button></li>`).join('')}</ul>
+    ${goalFormHTML(m)}`;
+}
+function goalFormHTML(m){
+  return `<form class="addrow gadd" data-form="mgoal" data-m="${m}">
+      <span class="gpickw"><button type="button" class="gpick" data-act="gpick" aria-label="카테고리 선택" title="카테고리 (선택 안 하면 기타)"><span class="gdot empty"></span></button><input type="hidden" class="gval" value="">
+        <span class="gmenu">${gcats().map(c=>`<button type="button" data-act="gchoose" data-v="${esc(c.n)}"><span class="gdot" style="background:${PAL[c.c%PAL.length].dot}"></span>${esc((c.e||'')+c.n)}</button>`).join('')}</span></span>
+      <input class="field" type="text" autocomplete="off" aria-label="목표 추가"><button class="btn ghost">+</button></form>`;
+}
+function monthTodosHTML(m){
+  const d = get('m'+pad(m));
+  return `<ul class="list">${d.todos.map(x=>`<li class="${x.done?'done':''}"><input type="checkbox" ${x.done?'checked':''} data-todo="${x.id}" data-m="${m}"><input class="bare" type="text" value="${esc(x.text)}" data-todo-text="${x.id}" data-m="${m}"><button class="x" data-act="delTodo" data-m="${m}" data-id="${x.id}">×</button></li>`).join('')}</ul>
+    <form class="addrow" data-form="todo" data-m="${m}"><input class="field" type="text" autocomplete="off" aria-label="할 일 추가"><button class="btn ghost">+</button></form>`;
+}
+function goalProgress(m){
+  const res = {};
+  weeksOfMonth(m).forEach(w=>{ const k = iso(w), html = get('m'+pad(weekInfo(k).month)).weekMemos[k]; if (!html) return;
+    const doc = new DOMParser().parseFromString('<body>'+html+'</body>','text/html'); let curG = null;
+    [...doc.body.children].forEach(c=>{
+      if (c.classList.contains('cat')) curG = null;
+      else if (c.classList.contains('h')) { curG = c.getAttribute('data-goal'); if (curG) { res[curG] = res[curG] || [0,0,0]; res[curG][2]++; } }
+      else if (curG && c.classList.contains('todo') && c.textContent.trim()) { res[curG][1]++; if (c.getAttribute('data-done')==='1') res[curG][0]++; }
+    }); });
+  return res;
+}
+function goalPanelHTML(m){
+  const yg = get('year').goals.filter(g=>g.months[m-1]).map(g=>({id:g.id, text:g.text, cat:g.cat, done:!!(g.dm&&g.dm[m-1]), y:true}));
+  const mg = get('m'+pad(m)).goals.map(g=>({id:g.id, text:g.text, cat:'', done:!!g.done, y:false}));
+  const all = yg.concat(mg), prog = goalProgress(m);
+  const order = gcats().map(c=>c.n), groups = {};
+  all.forEach(g=>{ const k = g.cat || '기타'; (groups[k] = groups[k] || []).push(g); });
+  const keys = Object.keys(groups).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a)) - (order.indexOf(b)<0?99:order.indexOf(b)));
+  return `<aside class="gpanel card${gpOpen?' open':''}" aria-hidden="${!gpOpen}"><h3>목표${goalRateHTML(m)}<button type="button" class="x gpclose" data-act="gptoggle" aria-label="닫기">×</button></h3>
+    ${keys.length ? keys.map(k=>`<div class="gp-cat"><span class="gdot" style="background:${catDot(k)}"></span>${esc(catText(k))}</div>
+      ${groups[k].map(g=>{ const p = prog[g.id]; return `<div class="gp-item ${g.done?'done':''}" data-id="${g.id}" data-text="${esc(g.text)}" data-cat="${esc(g.cat||'기타')}" title="주차 칸으로 끌어다 놓으세요">
+        <input type="checkbox" ${g.done?'checked':''} ${g.y?`data-ygdone="${g.id}"`:`data-mgdone="${g.id}"`} data-m="${m}" aria-label="달성">
+        <span class="gp-t">${esc(g.text)}</span>${p ? `<span class="gp-p" title="주차별 하위 할 일 진행">${p[0]}/${p[1]}</span>` : ''}</div>`; }).join('')}`).join('') : NOGOAL}
+    ${goalFormHTML(m)}
+  </aside>`;
+}
+function goalRateHTML(m){
+  const yg = get('year').goals.filter(g=>g.months[m-1]), mg = get('m'+pad(m)).goals;
+  const total = yg.length + mg.length; if (!total) return '';
+  const done = yg.filter(g=>g.dm&&g.dm[m-1]).length + mg.filter(g=>g.done).length, p = Math.round(done/total*100);
+  return `<span class="grate"><b>${p}%</b><small>${done}/${total}</small><span class="rbar"><i style="width:${p}%"></i></span></span>`;
+}
+function monthMemoHTML(m){
+  const d = get('m'+pad(m));
+  if (!d.memo && d.todos && d.todos.length && !d.memoInit){ d.memo = d.todos.map(x=>`<div class="todo"${x.done?' data-done="1"':''}>${esc(x.text)}</div>`).join(''); d.memoInit = true; }
+  return `<div class="rte mmemo" contenteditable="true" spellcheck="false" data-mmemo="${m}" aria-label="${m}월 메모">${memoHTML(d.memo)}</div>`;
+}
+const todoCount = m => { const d = get('m'+pad(m)); return `${d.todos.filter(x=>x.done).length}/${d.todos.length}`; };
+function weekGoalListHTML(k){
+  const w = get('w'+k); w.goals = w.goals || [];
+  return `${w.goals.length ? '' : NOGOAL}<ul class="list">${w.goals.map(g=>`<li class="${g.done?'done':''}"><input type="checkbox" ${g.done?'checked':''} data-wgdone="${g.id}" data-k="${k}"><input class="bare" type="text" value="${esc(g.text)}" data-wgoal-text="${g.id}" data-k="${k}"><button class="x" data-act="delWGoal" data-k="${k}" data-id="${g.id}">×</button></li>`).join('')}</ul>
+    <form class="addrow" data-form="wgoal" data-k="${k}"><input class="field" type="text" autocomplete="off" aria-label="이번 주 목표 추가"><button class="btn ghost">+</button></form>`;
+}
+const monBtn = (m, focus) => `<button type="button" class="monbtn" data-act="dwOpen" data-m="${m}" data-focus="${focus}">이번달</button>`;
+let drawer = null, drawerAnim = false, mgCat = null, gpOpen = false;
+function setGP(open){ gpOpen = open; const pv = app.querySelector('.gpanel'); if (pv){ pv.classList.toggle('open', open); pv.setAttribute('aria-hidden', !open); } const tb = app.querySelector('.gtoggle'); if (tb) tb.classList.toggle('on', open); }
+function drawerHTML(){
+  if (!drawer) return '';
+  const m = drawer.m, cls = drawerAnim ? '' : ' open';
+  return `<div class="dw-ov${cls}" data-act="dwClose"></div>
+  <aside class="drawer${cls}" role="dialog" aria-label="${m}월 목표와 할 일">
+    <div class="dw-h"><b>${m}월</b><a href="#month-${m}" class="dw-link">Monthly →</a><button type="button" class="x" data-act="dwClose" aria-label="닫기">×</button></div>
+    <section class="dw-s" id="dw-goals"><h3>목표${goalRateHTML(m)}</h3>${monthGoalsHTML(m)}</section>
+    <section class="dw-s rte-wrap" id="dw-todos"><h3>Memo <span class="wsec-r">${rteBar()}</span></h3>${monthMemoHTML(m)}</section>
+  </aside>`;
+}
+function weekGoalsHTML(wi){
+  const md_ = get('m'+pad(wi.month)), yg = get('year').goals.filter(g=>g.months[wi.month-1]);
+  const items = yg.map(g=>`<li><span class="dot" style="background:${catDot(g.cat)}"></span>${esc(g.text)}</li>`).concat(md_.goals.map(g=>`<li><span class="dot" style="background:var(--ink)"></span>${esc(g.text)}</li>`));
+  return `<section class="card wgoals"><h2 class="sec">${wi.month}월 목표<a class="more" href="#month-${wi.month}">→</a></h2>${items.length ? `<ul>${items.join('')}</ul>` : NOGOAL}</section>`;
+}
+function weekStatsHTML(wi, w, memo){
+  const rt = w.routines.reduce((a,r)=>[a[0]+r.checks.filter(Boolean).length, a[1]+r.n],[0,0]);
+  const todoAll = (memo||'').match(/class="todo"/g)||[], todoDone = (memo||'').match(/class="todo" data-done="1"/g)||[];
+  const days = [0,1,2,3,4,5,6].map(i=>addDays(wi.mon,i)).filter(d=>d.getFullYear()===YEAR).map(d=>dayDoc(iso(d)));
+  const sl = days.map(d=>sleepMin(d.sleep)).filter(v=>v!=null), sp = days.reduce((a,d)=>a+daySpend(d),0);
+  const stat = (k,v,sub) => `<div class="wstat"><span>${k}</span><b>${v}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+  return `<div class="wstats">
+    ${stat('루틴 달성', rt[1] ? Math.round(rt[0]/rt[1]*100)+'%' : '—', rt[1] ? `${rt[0]}/${rt[1]}회` : '')}
+    ${(()=>{ const wg=w.goals||[]; return stat('목표 달성', wg.length ? Math.round(wg.filter(g=>g.done).length/wg.length*100)+'%' : '—', wg.length ? `${wg.filter(g=>g.done).length}/${wg.length}개` : ''); })()}
+    ${stat('할 일 완료', todoAll.length ? Math.round(todoDone.length/todoAll.length*100)+'%' : '—', todoAll.length ? `${todoDone.length}/${todoAll.length}개` : '')}
+    ${stat('평균 수면', sl.length ? hm(Math.round(sl.reduce((a,b)=>a+b,0)/sl.length)) : '—', sl.length ? `${sl.length}일 기록` : '')}
+    ${stat('총 지출', sp ? won(sp)+'원' : '—', '')}
+  </div>`;
+}
+function weekLogHTML(wi){
+  const days = [0,1,2,3,4,5,6].map(i=>addDays(wi.mon,i));
+  const rows = days.map(d=> d.getFullYear()===YEAR ? dayDoc(iso(d)) : null);
+  const sl = rows.map(r=> r ? sleepMin(r.sleep) : null), sc = rows.map(r=> r ? screenMin(r.screen) : null), co = rows.map(r=> r && r.cond.score ? r.cond.score : null), ct = rows.map(r=> r ? r.contents.length : 0);
+  const avg = a => { const v = a.filter(x=>x!=null); return v.length ? v.reduce((x,y)=>x+y,0)/v.length : null; };
+  const as = avg(sl), ac = avg(co), asc = avg(sc), tot = ct.reduce((x,y)=>x+y,0);
+  return `<section class="card wlog"><h2 class="sec">이번 주 기록</h2>
+    <div class="gt-wrap"><table class="lt">
+      <thead><tr><th></th>${days.map((d,i)=>`<th>${d.getFullYear()===YEAR ? `<a href="#day-${iso(d)}">` : '<span>'}<b>${DOW[i]}</b><small>${d.getMonth()+1}/${d.getDate()}</small>${d.getFullYear()===YEAR ? '</a>' : '</span>'}</th>`).join('')}<th class="avg">평균</th></tr></thead>
+      <tbody>
+        <tr><th>수면</th>${sl.map(v=>`<td>${hmShort(v)}</td>`).join('')}<td class="avg">${as==null?'—':hmShort(Math.round(as))}</td></tr>
+        <tr><th>컨디션</th>${co.map(v=>`<td>${v?`${COND[v]}`:'—'}</td>`).join('')}<td class="avg">${ac==null?'—':ac.toFixed(1)}</td></tr>
+        <tr><th>스크린타임</th>${sc.map(v=>`<td>${hmShort(v)}</td>`).join('')}<td class="avg">${asc==null?'—':hmShort(Math.round(asc))}</td></tr>
+        <tr><th>콘텐츠</th>${ct.map(v=>`<td>${v||'—'}</td>`).join('')}<td class="avg">${tot?`총 ${tot}`:'—'}</td></tr>
+      </tbody></table></div>
+  </section>`;
+}
+function setPath(o, path, v){ const ks = path.split('.'); let x = o; for (let i=0;i<ks.length-1;i++){ x[ks[i]] = x[ks[i]] || {}; x = x[ks[i]]; } x[ks[ks.length-1]] = v; }
+
+/* ---------- 할 일 줄 드래그 (노션식 손잡이) ---------- */
+(function(){
+  const h = document.createElement('div'); h.id = 'dragh'; h.textContent = '⋮⋮'; h.setAttribute('aria-hidden','true'); document.body.appendChild(h);
+  const line = document.createElement('div'); line.id = 'dropline'; document.body.appendChild(line);
+  let hoverBlock = null, dragging = null;
+  const blockAt = el => { const ed = el && el.closest && el.closest('.rte'); if (!ed) return null; let n = el; while (n && n.parentNode !== ed) n = n.parentNode; return (n && n.nodeType===1 && n.tagName==='DIV' && !n.classList.contains('hid')) ? n : null; };
+  const showHandle = b => {
+    if (!b || !b.textContent.trim()){ if (!dragging) h.classList.remove('show'); hoverBlock = null; return; }
+    hoverBlock = b; const r = b.getBoundingClientRect();
+    h.style.top = (r.top + Math.min(r.height, 26)/2 - 11) + 'px'; h.style.left = (r.left - 22) + 'px'; h.classList.add('show');
+  };
+  app.addEventListener('mousemove', e=>{ if (dragging) return; const b = blockAt(e.target); if (b) showHandle(b); else if (!e.target.closest('.rte')) { h.classList.remove('show'); hoverBlock = null; } });
+  app.addEventListener('pointerdown', e=>{ if (e.pointerType!=='mouse'){ const b = blockAt(e.target); if (b) showHandle(b); } });
+  window.addEventListener('scroll', ()=>{ if (!dragging){ h.classList.remove('show'); } }, {passive:true});
+  document.addEventListener('mouseleave', ()=>{ if (!dragging) h.classList.remove('show'); });
+  const targetAt = (x, y) => {
+    const el = document.elementFromPoint(x, y); if (!el) return null;
+    let ed = el.closest && el.closest('.rte');
+    if (!ed){ const card = el.closest && el.closest('.rte-wrap'); if (card) ed = card.querySelector('.rte'); }
+    if (!ed) return null;
+    const kids = [...ed.children].filter(c=>!(dragging.group||[]).includes(c) && !c.classList.contains('hid'));
+    let before = null; for (const c of kids){ const r = c.getBoundingClientRect(); if (y < r.top + r.height/2){ before = c; break; } }
+    return {ed, before, kids};
+  };
+  app.addEventListener('pointerdown', e=>{
+    const it = e.target.closest('.gp-item'); if (!it || e.target.closest('input,button')) return;
+    e.preventDefault();
+    const ghost = document.createElement('div'); ghost.id = 'dghost'; ghost.textContent = it.dataset.text; document.body.appendChild(ghost);
+    dragging = {block:null, group:[], ghost, tgt:null}; document.body.classList.add('dragging-line'); it.classList.add('dragsrc'); setTimeout(()=>setGP(false), 120);
+    const move = ev=>{
+      ghost.style.left = (ev.clientX + 12) + 'px'; ghost.style.top = (ev.clientY + 8) + 'px';
+      const t = targetAt(ev.clientX, ev.clientY); dragging.tgt = t;
+      if (!t || !t.ed.dataset.wmemo){ line.classList.remove('show'); dragging.tgt = null; return; }
+      const er = t.ed.getBoundingClientRect(); let y; if (t.before) y = t.before.getBoundingClientRect().top; else { const last = t.kids[t.kids.length-1]; y = last ? last.getBoundingClientRect().bottom : er.top + 4; }
+      line.style.left = er.left + 'px'; line.style.width = er.width + 'px'; line.style.top = (y - 1) + 'px'; line.classList.add('show');
+    };
+    const up = ()=>{
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      ghost.remove(); line.classList.remove('show'); document.body.classList.remove('dragging-line'); it.classList.remove('dragsrc');
+      const t = dragging.tgt; dragging = null; if (!t) return;
+      const kb = memoKey(t.ed), snap = [[kb, JSON.stringify(get(kb))]];
+      [...t.ed.children].forEach(c=>{ if (!c.textContent.trim() && !c.className && t.ed.children.length===1) c.remove(); });
+      let prevCat = null, n = t.before ? t.before.previousElementSibling : t.ed.lastElementChild;
+      while (n){ if (n.classList.contains('cat')){ prevCat = n.getAttribute('data-cat'); break; } n = n.previousElementSibling; }
+      const cat = it.dataset.cat, frag = [];
+      if (cat && prevCat !== cat){ const c = document.createElement('div'); c.className = 'cat'; c.setAttribute('data-cat', cat); c.textContent = catText(cat); frag.push(c); }
+      const hd = document.createElement('div'); hd.className = 'h'; hd.setAttribute('data-goal', it.dataset.id); hd.textContent = it.dataset.text; frag.push(hd);
+      const td = document.createElement('div'); td.className = 'todo'; td.setAttribute('data-ind','1'); td.innerHTML = '<br>'; frag.push(td);
+      frag.forEach(x=>t.ed.insertBefore(x, t.before));
+      applyCollapse(t.ed); saveMemo(t.ed);
+      t.ed.focus(); const rg = document.createRange(); rg.setStart(td, 0); rg.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg);
+      showUndo('', snap, `‘${it.dataset.text}’ 추가했어요`);
+      const pv = app.querySelector('.gpanel'); if (pv) { pv.outerHTML = goalPanelHTML(cur.m); }
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    move(e);
+  });
+  h.addEventListener('pointerdown', e=>{
+    if (!hoverBlock) return; e.preventDefault();
+    const block = hoverBlock, src = block.parentNode, shift = e.shiftKey, sx = e.clientX, sy = e.clientY;
+    const group = (bsActive() && BS.ed===src && BS.set.includes(block)) ? bsExpanded() : groupOf(block);
+    const ghost = document.createElement('div'); ghost.id = 'dghost'; ghost.textContent = block.textContent + (group.length>1 ? `  +${group.length-1}` : ''); ghost.style.display = 'none'; document.body.appendChild(ghost);
+    dragging = {block, src, ghost, tgt:null, group, moved:false};
+    const move = ev=>{
+      if (!dragging.moved){ if (Math.hypot(ev.clientX-sx, ev.clientY-sy) < 4) return; dragging.moved = true; ghost.style.display = ''; group.forEach(x=>x.classList.add('dragsrc')); document.body.classList.add('dragging-line'); }
+      ghost.style.left = (ev.clientX + 12) + 'px'; ghost.style.top = (ev.clientY + 8) + 'px';
+      const t = targetAt(ev.clientX, ev.clientY); dragging.tgt = t;
+      if (!t){ line.classList.remove('show'); return; }
+      const er = t.ed.getBoundingClientRect();
+      let y; if (t.before) y = t.before.getBoundingClientRect().top; else { const last = t.kids[t.kids.length-1]; y = last ? last.getBoundingClientRect().bottom : er.top + 4; }
+      line.style.left = er.left + 'px'; line.style.width = er.width + 'px'; line.style.top = (y - 1) + 'px'; line.classList.add('show');
+    };
+    const up = ()=>{
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      ghost.remove(); line.classList.remove('show'); group.forEach(x=>x.classList.remove('dragsrc')); document.body.classList.remove('dragging-line'); h.classList.remove('show');
+      const moved = dragging.moved, t = dragging.tgt; dragging = null;
+      if (!moved){ bsHandleClick(block, shift); return; }
+      const wasSel = bsActive() && BS.set.includes(block); bsClear();
+      if (!t || !(t.ed.dataset.wmemo || t.ed.dataset.mmemo)) return;
+      if (t.ed === src && (t.before === group[group.length-1].nextElementSibling)){ if (wasSel) bsSet(src, group); return; }
+      const ka = memoKey(src), kb = memoKey(t.ed);
+      const snap = [...new Set([ka,kb])].map(x=>[x, JSON.stringify(get(x))]);
+      [...t.ed.children].forEach(c=>{ if (c!==block && !c.textContent.trim() && !c.classList.contains('todo') && t.ed.children.length===1) c.remove(); });
+      group.forEach(x=>t.ed.insertBefore(x, t.before)); applyCollapse(src); if (t.ed!==src) applyCollapse(t.ed);
+      if (!src.children.length) src.innerHTML = '<div><br></div>';
+      saveMemo(src); if (t.ed !== src) saveMemo(t.ed);
+      const ae = document.activeElement; if (ae && ae.isContentEditable) ae.blur();
+      showUndo('', snap, t.ed===src ? '순서를 바꿨어요' : '옮겼어요');
+      if (wasSel) bsSet(t.ed, group);
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    move(e);
+  });
+})();
+
+/* ---------- 블록 선택 (노션식: 여러 줄 선택 → 복사·복제·이동·삭제) ---------- */
+const BS = { ed:null, set:[], anchor:null, focus:null, targets:[], cutting:false, copied:false };
+let blockClip = null;
+const bsVisible = ed => [...ed.children].filter(c=>!c.classList.contains('hid'));
+function bsActive(){ return !!(BS.ed && BS.set.length && BS.ed.isConnected && BS.set.every(b=>b.isConnected && b.parentNode===BS.ed)); }
+function bsExpanded(){
+  const kids = [...BS.ed.children], out = new Set();
+  BS.set.forEach(b=>{ out.add(b); if (isHead(b) && b.getAttribute('data-col')==='1') groupOf(b).forEach(x=>out.add(x)); });
+  return [...out].sort((a,b)=>kids.indexOf(a)-kids.indexOf(b));
+}
+function bsClear(silent){
+  document.querySelectorAll('.rte .bsel').forEach(b=>b.classList.remove('bsel'));
+  BS.ed = null; BS.set = []; BS.anchor = null; BS.focus = null;
+  if (!silent) bsBar();
+}
+function bsSet(ed, blocks, anchor){
+  bsClear(true);
+  const kids = [...ed.children];
+  blocks = [...new Set(blocks)].filter(b=>b && b.parentNode===ed && !b.classList.contains('hid')).sort((a,b)=>kids.indexOf(a)-kids.indexOf(b));
+  if (!blocks.length){ bsBar(); return; }
+  BS.ed = ed; BS.set = blocks; BS.anchor = anchor && blocks.includes(anchor) ? anchor : blocks[0];
+  blocks.forEach(b=>b.classList.add('bsel'));
+  const a = document.activeElement; if (a && a.isContentEditable) a.blur();
+  getSelection().removeAllRanges();
+  bsBar();
+}
+function bsRange(ed, a, b){ const kids = bsVisible(ed); let i = kids.indexOf(a), j = kids.indexOf(b); if (i<0 || j<0) return [b]; if (i>j) [i,j] = [j,i]; return kids.slice(i, j+1); }
+const rteLabel = ed => { if (ed.dataset.mmemo) return `${ed.dataset.mmemo}월 메모`; const wi = weekInfo(ed.dataset.wmemo); return `${wi.month}월 ${wi.idx}주차`; };
+function bsTargets(){
+  const src = BS.ed, out = [];
+  app.querySelectorAll('.rte').forEach(ed=>{ if (ed===src || (ed.dataset.wmemo && ed.dataset.wmemo===src.dataset.wmemo) || out.some(o=>o.ed && o.label===rteLabel(ed))) return; out.push({label:rteLabel(ed), ed}); });
+  if (src.dataset.wmemo){
+    const i = ALL_WEEKS.findIndex(w=>iso(w)===src.dataset.wmemo);
+    [[i-1,'지난 주'],[i+1,'다음 주']].forEach(([j,nm])=>{ if (j<0 || j>=ALL_WEEKS.length) return; const k = iso(ALL_WEEKS[j]);
+      if (out.some(o=>o.ed && o.ed.dataset.wmemo===k)) return; const wi = weekInfo(k); out.push({label:`${wi.month}월 ${wi.idx}주차`, sub:nm, k}); });
+  }
+  return out;
+}
+function bsBar(){
+  let bar = document.getElementById('bselbar');
+  if (!bsActive()){ if (bar){ bar.classList.remove('show'); bar.innerHTML = ''; } return; }
+  if (!bar){
+    bar = document.createElement('div'); bar.id = 'bselbar'; document.body.appendChild(bar);
+    bar.addEventListener('mousedown', e=>e.preventDefault());
+    bar.addEventListener('click', e=>{ const b = e.target.closest('[data-bs]'); if (!b || !bsActive()) return; const a = b.dataset.bs;
+      if (a==='copy') bsCopy(); else if (a==='dup') bsDup(); else if (a==='del') bsDelete(); else if (a==='to') bsMoveTo(+b.dataset.i);
+      else if (a==='move'){ const m = bar.querySelector('.bsmenu'); if (m) m.remove(); else bsMenu(b); } });
+  }
+  const n = bsExpanded().length;
+  bar.innerHTML = `<span class="bscount">${n}줄 선택</span><button type="button" data-bs="copy" title="복사 (Ctrl+C)">복사</button><button type="button" data-bs="dup" title="복제 (Ctrl+D)">복제</button><button type="button" data-bs="move">이동 ▾</button><button type="button" data-bs="del" title="삭제 (Delete)">삭제</button>`;
+  bar.classList.add('show'); bsPos();
+}
+function bsMenu(btn){
+  const bar = document.getElementById('bselbar'); BS.targets = bsTargets();
+  const m = document.createElement('div'); m.className = 'bsmenu';
+  m.innerHTML = BS.targets.length ? BS.targets.map((t,i)=>`<button type="button" data-bs="to" data-i="${i}">${esc(t.label)}${t.sub?`<span class="muted"> · ${t.sub}</span>`:''}</button>`).join('') : '<span class="muted" style="padding:6px 10px">—</span>';
+  m.style.left = (btn.offsetLeft) + 'px'; bar.appendChild(m);
+}
+function bsPos(){
+  const bar = document.getElementById('bselbar'); if (!bar || !bsActive()) return;
+  const f = BS.set[0].getBoundingClientRect(), l = BS.set[BS.set.length-1].getBoundingClientRect(), er = BS.ed.getBoundingClientRect();
+  const bh = bar.offsetHeight || 34, bw = bar.offsetWidth || 260;
+  let top = l.bottom + 6; if (top + bh > innerHeight - 8) top = f.top - bh - 6;
+  bar.style.top = top + 'px'; bar.style.left = Math.max(8, Math.min(er.right - bw, innerWidth - bw - 8)) + 'px';
+}
+window.addEventListener('scroll', ()=>bsPos(), {passive:true, capture:true});
+window.addEventListener('resize', ()=>bsPos());
+const bsSnap = keys => [...new Set(keys)].map(k=>[k, JSON.stringify(get(k))]);
+const bsHTML = bl => sanitize(bl.map(b=>b.outerHTML).join(''));
+const bsText = bl => bl.map(b=>{ const lv = +(b.getAttribute('data-ind')||0), pre = b.classList.contains('todo') ? (b.getAttribute('data-done')==='1' ? '☑ ' : '☐ ') : b.classList.contains('bul') ? '• ' : ''; return '  '.repeat(lv) + pre + b.textContent; }).join('\n');
+function bsCopy(){
+  const bl = bsExpanded(); blockClip = {html:bsHTML(bl), text:bsText(bl)};
+  try { navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([`<div data-pl-blocks="1">${blockClip.html}</div>`],{type:'text/html'}), 'text/plain':new Blob([blockClip.text],{type:'text/plain'})})]).catch(()=>{}); } catch(e){}
+  showUndo('', null, `${bl.length}줄 복사했어요`);
+}
+function bsDelete(msg){
+  const ed = BS.ed, bl = bsExpanded(), snap = bsSnap([memoKey(ed)]);
+  bl.forEach(b=>b.remove()); if (!ed.children.length) ed.innerHTML = '<div><br></div>';
+  bsClear(); applyCollapse(ed); saveMemo(ed);
+  showUndo('', snap, `${bl.length}줄 ${msg||'삭제했어요'}`);
+}
+function bsDup(){
+  const ed = BS.ed, bl = bsExpanded(), snap = bsSnap([memoKey(ed)]);
+  const cl = bl.map(b=>{ const c = b.cloneNode(true); c.classList.remove('bsel'); return c; });
+  bl[bl.length-1].after(...cl); applyCollapse(ed); saveMemo(ed); bsSet(ed, cl);
+  showUndo('', snap, `${bl.length}줄 복제했어요`);
+}
+function bsMoveTo(i){
+  const t = BS.targets[i]; if (!t) return;
+  const src = BS.ed, bl = bsExpanded(), html = bsHTML(bl);
+  const dk = t.ed ? memoKey(t.ed) : 'm'+pad(weekInfo(t.k).month), snap = bsSnap([memoKey(src), dk]);
+  bsClear();
+  if (t.ed){ const ed = t.ed; if (!ed.textContent.trim() && !ed.querySelector('.todo,.bul,.h,.cat')) ed.innerHTML = ''; bl.forEach(b=>ed.appendChild(b)); }
+  else bl.forEach(b=>b.remove());
+  if (!src.children.length) src.innerHTML = '<div><br></div>';
+  applyCollapse(src); saveMemo(src);
+  if (t.ed){ applyCollapse(t.ed); saveMemo(t.ed); }
+  else { const d = get(dk); d.weekMemos = d.weekMemos || {}; const pv = d.weekMemos[t.k]; const pc = pv && pv.replace(/<div><br><\/div>/g,'').trim() ? sanitize(memoHTML(pv)) : ''; d.weekMemos[t.k] = pc + html; save(dk); }
+  showUndo('', snap, `${bl.length}줄을 ${t.label}로 옮겼어요`);
+}
+function bsShift(up){
+  const ed = BS.ed, bl = bsExpanded(), kids = [...ed.children];
+  if (up){ let p = bl[0].previousElementSibling; while (p && p.classList.contains('hid')) p = p.previousElementSibling; if (!p) return; p.before(...bl); }
+  else { let n = bl[bl.length-1].nextElementSibling; while (n && n.classList.contains('hid')) n = n.nextElementSibling; if (!n) return;
+    const g = isHead(n) && n.getAttribute('data-col')==='1' ? groupOf(n) : [n]; g[g.length-1].after(...bl); }
+  applyCollapse(ed);
+  if (bl.some(b=>b.classList.contains('hid'))){ let p = bl[0].previousElementSibling; while (p){ if (isHead(p) && p.getAttribute('data-col')==='1'){ p.removeAttribute('data-col'); } p = p.previousElementSibling; if (p && p.classList.contains('cat')) break; } applyCollapse(ed); }
+  saveMemo(ed); bsPos();
+  void kids;
+}
+function bsIndent(out){
+  BS.set.forEach(b=>{ if (isHead(b)) return; const lv = +(b.getAttribute('data-ind')||0), nl = out ? Math.max(0, lv-1) : Math.min(3, lv+1); if (nl) b.setAttribute('data-ind', nl); else b.removeAttribute('data-ind'); });
+  applyCollapse(BS.ed); saveMemo(BS.ed); bsPos();
+}
+function bsFormat(kind){
+  const ed = BS.ed, bl = BS.set.filter(b=>!b.classList.contains('cat'));
+  if (kind==='todo'){ const on = !bl.every(b=>b.classList.contains('todo')); bl.forEach(b=>{ if (on){ b.classList.remove('h','bul'); b.classList.add('todo'); } else { b.classList.remove('todo'); b.removeAttribute('data-done'); } }); }
+  else if (kind==='bul'){ const on = !bl.every(b=>b.classList.contains('bul')); bl.forEach(b=>{ if (on){ b.classList.remove('h','todo'); b.removeAttribute('data-done'); b.classList.add('bul'); } else b.classList.remove('bul'); }); }
+  else if (kind==='bold'){
+    const full = b => { const t = b.textContent.replace(/\s/g,'').length; let n = 0; b.querySelectorAll('b,strong').forEach(x=>{ if (!x.parentNode.closest('b,strong') || !b.contains(x.parentNode.closest('b,strong'))) n += x.textContent.replace(/\s/g,'').length; }); return t && n >= t; };
+    const on = !bl.filter(b=>b.textContent.trim()).every(full);
+    bl.forEach(b=>{ b.querySelectorAll('b,strong').forEach(x=>x.replaceWith(...x.childNodes)); if (on && b.textContent.trim()){ const w = document.createElement('b'); w.append(...b.childNodes); b.appendChild(w); } });
+  }
+  bl.forEach(b=>{ if (!b.className) b.removeAttribute('class'); });
+  applyCollapse(ed); saveMemo(ed); bsBar();
+}
+function clipBlocks(cd){
+  if (!cd) return null;
+  const html = cd.getData('text/html');
+  if (html && html.includes('data-pl-blocks')){ const w = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-pl-blocks]'); if (w) return w.innerHTML; }
+  const t = (cd.getData('text/plain')||'').replace(/\r/g,'');
+  if (blockClip && t && t===blockClip.text) return blockClip.html;
+  return null;
+}
+function bsInsert(ed, ref, html, keepRef){
+  const tpl = document.createElement('div'); tpl.innerHTML = sanitize(html); const nodes = [...tpl.children]; if (!nodes.length) return [];
+  if (ref && !keepRef && !ref.textContent.trim() && !ref.className) ref.replaceWith(...nodes);
+  else if (ref) ref.after(...nodes); else ed.append(...nodes);
+  applyCollapse(ed); saveMemo(ed); return nodes;
+}
+const editingNow = () => { const a = document.activeElement; return a && (a.tagName==='INPUT' || a.tagName==='TEXTAREA' || a.tagName==='SELECT' || a.isContentEditable); };
+document.addEventListener('keydown', e=>{
+  if (!BS.ed) return;
+  if (!bsActive()){ bsClear(); return; }
+  if (editingNow() || e.isComposing) return;
+  const mod = e.metaKey || e.ctrlKey, k = e.key, lk = k.length===1 ? k.toLowerCase() : k;
+  if (k==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); bsClear(); return; }
+  if (k==='Backspace' || k==='Delete'){ e.preventDefault(); bsDelete(); return; }
+  if (mod && (lk==='c' || lk==='x' || lk==='ㅊ' || lk==='ㅌ')){
+    e.preventDefault(); BS.cutting = (lk==='x' || lk==='ㅌ'); BS.copied = false;
+    try { document.execCommand('copy'); } catch(err){}
+    if (!BS.copied){ const bl = bsExpanded(); blockClip = {html:bsHTML(bl), text:bsText(bl)}; if (BS.cutting) bsDelete('잘라냈어요'); else showUndo('', null, `${bl.length}줄 복사했어요`); }
+    BS.cutting = false; return;
+  }
+  if (mod && (lk==='d' || lk==='ㅇ')){ e.preventDefault(); bsDup(); return; }
+  if (mod && (lk==='a' || lk==='ㅁ')){ e.preventDefault(); bsSet(BS.ed, bsVisible(BS.ed)); return; }
+  if (k==='ArrowUp' || k==='ArrowDown'){
+    e.preventDefault(); const up = k==='ArrowUp';
+    if ((mod || e.altKey) && e.shiftKey){ bsShift(up); return; }
+    const kids = bsVisible(BS.ed), clamp = i => kids[Math.max(0, Math.min(kids.length-1, i))];
+    if (e.shiftKey){ const fo = BS.focus || (up ? BS.set[0] : BS.set[BS.set.length-1]), f = clamp(kids.indexOf(fo) + (up?-1:1)), an = BS.anchor; bsSet(BS.ed, bsRange(BS.ed, an, f), an); BS.focus = f; return; }
+    bsSet(BS.ed, [clamp(kids.indexOf(up ? BS.set[0] : BS.set[BS.set.length-1]) + (up?-1:1))]); return;
+  }
+  if (k==='Tab'){ e.preventDefault(); bsIndent(e.shiftKey); return; }
+  if (k==='Enter'){ e.preventDefault(); const b = BS.set[BS.set.length-1], ed = BS.ed; bsClear(); ed.focus(); const r = document.createRange(); r.selectNodeContents(b); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; }
+}, true);
+document.addEventListener('copy', e=>{
+  if (!bsActive() || editingNow()) return;
+  e.preventDefault(); const bl = bsExpanded(); blockClip = {html:bsHTML(bl), text:bsText(bl)};
+  e.clipboardData.setData('text/html', `<div data-pl-blocks="1">${blockClip.html}</div>`); e.clipboardData.setData('text/plain', blockClip.text);
+  BS.copied = true; if (BS.cutting) bsDelete('잘라냈어요'); else showUndo('', null, `${bl.length}줄 복사했어요`);
+});
+document.addEventListener('paste', e=>{
+  if (!bsActive() || editingNow()) return;
+  e.preventDefault(); const cd = e.clipboardData, ed = BS.ed;
+  let html = clipBlocks(cd); if (!html){ const t = (cd.getData('text/plain')||'').replace(/\r/g,''); if (!t) return; html = t.split('\n').map(l=>`<div>${esc(l)||'<br>'}</div>`).join(''); }
+  const snap = bsSnap([memoKey(ed)]), bl = bsExpanded(), nodes = bsInsert(ed, bl[bl.length-1], html, true);
+  bsSet(ed, nodes); showUndo('', snap, `${nodes.length}줄 붙여넣었어요`);
+});
+/* 마우스: 여러 줄에 걸쳐 끌면 블록 선택, 카드 여백에서 끌어도 선택 */
+(function(){
+  let st = null;
+  const blockAtY = (ed, y) => { const kids = bsVisible(ed); if (!kids.length) return null; for (const c of kids){ const r = c.getBoundingClientRect(); if (y < r.bottom) return c; } return kids[kids.length-1]; };
+  document.addEventListener('pointerdown', e=>{
+    if (e.button!==0 || e.pointerType!=='mouse') return;
+    if (e.target.closest('#bselbar,#dragh,#toast,#catmenu')) return;
+    const wrap = e.target.closest('.rte-wrap'), inBar = e.target.closest('.rte-bar');
+    if (BS.ed && !(inBar && wrap && wrap.contains(BS.ed))) bsClear();
+    if (!wrap || inBar) return;
+    const ed = wrap.querySelector('.rte'); if (!ed) return;
+    const inEd = ed.contains(e.target);
+    if (!inEd){ if (e.target.closest('button,input,select,textarea,a,label,.wsched,.wgl,.h,h2,h3') || e.clientY < ed.getBoundingClientRect().top - 4) return; }
+    if (inEd && e.target!==ed && e.target.closest('.rte > div.todo') && e.clientX - e.target.closest('.rte > div.todo').getBoundingClientRect().left < 22) return;
+    st = {ed, x:e.clientX, y:e.clientY, start:blockAtY(ed, e.clientY), inEd, on:false, shift:e.shiftKey};
+    if (!inEd) e.preventDefault();
+  });
+  document.addEventListener('pointermove', e=>{
+    if (!st || !(e.buttons & 1)) return;
+    const cb = blockAtY(st.ed, e.clientY); if (!cb || !st.start) return;
+    if (!st.on){
+      if (st.inEd ? cb === st.start : Math.abs(e.clientY - st.y) < 5) return;
+      st.on = true; document.body.classList.add('bsel-drag');
+    }
+    getSelection().removeAllRanges();
+    bsSet(st.ed, bsRange(st.ed, st.start, cb), st.start);
+  });
+  const end = ()=>{ if (st && st.on) document.body.classList.remove('bsel-drag'); st = null; };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
+function bsHandleClick(block, shift){
+  const ed = block.parentNode;
+  if (shift && bsActive() && BS.ed===ed){ bsSet(ed, bsRange(ed, BS.anchor, block), BS.anchor); return; }
+  if (bsActive() && BS.set.length===1 && BS.set[0]===block){ bsClear(); return; }
+  bsSet(ed, [block]);
+}
+
+/* ---------- 삭제 되돌리기 ---------- */
+const UNDO_KEYS = {
+  gdel:()=>['settings'], delOpt:()=>['settings'], delExp:()=>['d'+cur.d], delContent:()=>['d'+cur.d],
+  delGoal:()=>['year'], unYear:()=>['year'], delMGoal:(b)=>['m'+pad(+(b.dataset.m||cur.m))], delTodo:(b)=>['m'+pad(+(b.dataset.m||cur.m))], delRoutine:()=>['w'+cur.k], delWGoal:(b)=>['w'+b.dataset.k]
+};
+let undoTimer = null, undoFn = null;
+function showUndo(label, snap, msg){
+  let t = document.getElementById('toast');
+  if (!t){ t = document.createElement('div'); t.id = 'toast'; t.setAttribute('role','status'); document.body.appendChild(t);
+    t.addEventListener('click', ev=>{ if (ev.target.closest('.tundo') && undoFn) undoFn(); else if (ev.target.closest('.tclose')) hideUndo(); }); }
+  t.innerHTML = `<span class="tmsg">${msg ? esc(msg) : `${label ? `‘${esc(label)}’ ` : ''}삭제했어요`}</span>${snap ? '<button type="button" class="tundo">되돌리기</button>' : ''}<button type="button" class="tclose" aria-label="닫기">×</button>`;
+  if (!snap){ undoFn = null; t.classList.add('show'); clearTimeout(undoTimer); undoTimer = setTimeout(hideUndo, 2500); return; }
+  undoFn = ()=>{ bsClear(); snap.forEach(([k,v])=>{ cache[k] = JSON.parse(v); save(k); }); hideUndo(); render(); };
+  t.classList.add('show');
+  clearTimeout(undoTimer); undoTimer = setTimeout(hideUndo, 6000);
+}
+function hideUndo(){ const t = document.getElementById('toast'); if (t) t.classList.remove('show'); undoFn = null; clearTimeout(undoTimer); }
+document.addEventListener('mousedown', e=>{ if (gpOpen && !e.target.closest('.gpanel,.gtoggle,#toast')) setGP(false); });
+document.addEventListener('keydown', e=>{
+  if (cur.view!=='month' || cur.tab!=='weeks') return;
+  if (e.key==='Escape' && gpOpen){ setGP(false); return; }
+  const a = document.activeElement; if (a && (a.tagName==='INPUT' || a.tagName==='TEXTAREA' || a.tagName==='SELECT' || a.isContentEditable)) return;
+  if ((e.key==='g' || e.key==='G' || e.key==='ㅎ') && !e.metaKey && !e.ctrlKey && !e.altKey){ e.preventDefault(); setGP(!gpOpen); }
+});
+document.addEventListener('click', e=>{ if (!e.target.closest('.gpickw')) app.querySelectorAll('.gpickw.open').forEach(x=>x.classList.remove('open')); });
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && drawer){ const c = app.querySelector('[data-act=dwClose].x'); c && c.click(); } });
+document.addEventListener('keydown', e=>{
+  if (!undoFn || !(e.metaKey||e.ctrlKey) || e.key.toLowerCase()!=='z' || e.shiftKey) return;
+  const a = document.activeElement; if (a && (a.tagName==='INPUT' || a.tagName==='TEXTAREA' || a.isContentEditable)) return;
+  e.preventDefault(); undoFn();
+});
+
+/* ---------- 메모 에디터 (체크박스·볼드) ---------- */
+try { document.execCommand('defaultParagraphSeparator', false, 'div'); } catch(e){}
+function rteBar(full){ return `<div class="rte-bar">${full ? `<button type="button" data-rte="cat" aria-label="카테고리 줄" title="카테고리 (줄 맨 앞에 /)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></svg></button><button type="button" data-rte="bul" aria-label="점 목록" title="점 목록 (줄 맨 앞에 - 띄어쓰기)"><span style="font-size:18px;line-height:0">•</span></button>` : ''}<button type="button" data-rte="bold" aria-label="굵게"><b>B</b></button><button type="button" data-rte="todo" aria-label="체크박스"><span class="cbx"></span></button></div>`; }
+// ---- 계획(아웃라인) 도우미
+const isHead = b => b && (b.classList.contains('h') || b.classList.contains('cat'));
+function groupOf(b){
+  const g = [b]; if (!isHead(b)) return g;
+  const isCat = b.classList.contains('cat');
+  let n = b.nextElementSibling;
+  while (n && !(n.classList.contains('cat') || (!isCat && n.classList.contains('h')))) { g.push(n); n = n.nextElementSibling; }
+  return g;
+}
+function applyCollapse(ed){
+  [...ed.children].forEach(c=>c.classList.remove('hid'));
+  [...ed.children].forEach(c=>{ if (c.classList.contains('h') && c.getAttribute('data-col')==='1') groupOf(c).slice(1).forEach(x=>x.classList.add('hid')); });
+  [...ed.children].forEach(c=>{ if (c.classList.contains('h')){ const n = groupOf(c).length-1; if (n) c.setAttribute('data-n', n); else c.removeAttribute('data-n'); }
+    if (c.classList.contains('cat')){ const ci = gcats().find(x=>x.n===c.getAttribute('data-cat')), pal = PAL[(ci ? ci.c : 4) % PAL.length]; c.style.background = pal.bg || ''; c.style.color = pal.bg ? '#1a1a1a' : ''; } });
+}
+function setKind(b, kind, extra){
+  ['todo','bul','h','cat'].forEach(k=>b.classList.remove(k)); ['data-done','data-goal','data-col','data-cat','data-ind','data-n'].forEach(a=>b.removeAttribute(a));
+  if (kind) b.classList.add(kind); if (!b.className) b.removeAttribute('class');
+  if (extra) Object.entries(extra).forEach(([k,v])=>b.setAttribute(k,v));
+}
+const catText = n => { const c = gcats().find(x=>x.n===n); return (c && c.e ? c.e : '') + n; };
+let catMenuFor = null;
+function openCatMenu(ed, block){
+  let m = document.getElementById('catmenu');
+  if (!m){ m = document.createElement('div'); m.id = 'catmenu'; document.body.appendChild(m);
+    m.addEventListener('mousedown', ev=>ev.preventDefault());
+    m.addEventListener('click', ev=>{ const bt = ev.target.closest('button'); if (!bt || !catMenuFor) return; const {ed, block} = catMenuFor; closeCatMenu();
+      setKind(block, 'cat', {'data-cat': bt.dataset.v}); block.textContent = catText(bt.dataset.v);
+      let nx = block.nextElementSibling; if (!nx){ nx = document.createElement('div'); nx.innerHTML = '<br>'; block.after(nx); }
+      const rg = document.createRange(); rg.selectNodeContents(nx); rg.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); ed.focus();
+      applyCollapse(ed); saveMemo(ed); }); }
+  m.innerHTML = gcats().map(c=>`<button type="button" data-v="${esc(c.n)}"><span class="gdot" style="background:${PAL[c.c%PAL.length].dot}"></span>${esc((c.e||'')+c.n)}</button>`).join('');
+  const rc = block.getBoundingClientRect(); m.style.left = rc.left + 'px'; m.style.top = (rc.bottom + 4) + 'px'; m.classList.add('show');
+  catMenuFor = {ed, block};
+}
+function closeCatMenu(){ const m = document.getElementById('catmenu'); if (m) m.classList.remove('show'); catMenuFor = null; }
+document.addEventListener('mousedown', e=>{ if (catMenuFor && !e.target.closest('#catmenu')) closeCatMenu(); });
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && catMenuFor) closeCatMenu(); });
+function sanitize(html){
+  const doc = new DOMParser().parseFromString('<body>'+html+'</body>', 'text/html');
+  const isBold = n => { const t=n.tagName; if (t==='B'||t==='STRONG') return true; const fw = n.style && n.style.fontWeight; return fw==='bold' || +fw>=600; };
+  const inline = node => { let out=''; node.childNodes.forEach(n=>{
+    if (n.nodeType===3) out += esc(n.nodeValue);
+    else if (n.nodeType===1){
+      if (n.tagName==='BR') out += '<br>';
+      else if (n.tagName==='DIV' || n.tagName==='P') out += '<br>' + inline(n);
+      else { const inner = inline(n); out += isBold(n) ? (inner ? `<b>${inner}</b>` : '') : inner; }
+    } }); return out; };
+  let out = '', loose = '';
+  const flush = () => { if (loose){ out += `<div>${loose}</div>`; loose=''; } };
+  doc.body.childNodes.forEach(n=>{
+    if (n.nodeType===1 && (n.tagName==='DIV' || n.tagName==='P')){
+      flush();
+      const inner = inline(n), cl = n.classList, ga = k => n.getAttribute(k);
+      const kind = cl.contains('todo') ? 'todo' : cl.contains('bul') ? 'bul' : cl.contains('h') ? 'h' : cl.contains('cat') ? 'cat' : '';
+      let attrs = kind ? ` class="${kind}"` : '';
+      if (kind==='todo' && ga('data-done')==='1') attrs += ' data-done="1"';
+      if ((kind==='todo' || kind==='bul' || kind==='') && /^[123]$/.test(ga('data-ind')||'')) attrs += ` data-ind="${ga('data-ind')}"`;
+      if (kind==='h' && ga('data-goal')) attrs += ` data-goal="${esc(ga('data-goal'))}"`;
+      if (kind==='h' && ga('data-col')==='1') attrs += ' data-col="1"';
+      if (kind==='cat' && ga('data-cat')) attrs += ` data-cat="${esc(ga('data-cat'))}"`;
+      out += `<div${attrs}>${inner||'<br>'}</div>`;
+    } else if (n.nodeType===1 && n.tagName==='BR'){ if (loose){ flush(); } else out += '<div><br></div>'; }
+    else loose += n.nodeType===3 ? esc(n.nodeValue) : (n.nodeType===1 ? (isBold(n) ? `<b>${inline(n)}</b>` : inline(n)) : '');
+  });
+  flush();
+  return out;
+}
+function memoHTML(v){
+  if (!v) return '<div><br></div>';
+  if (!/^\s*</.test(v)) return v.split('\n').map(l=>`<div>${esc(l)||'<br>'}</div>`).join('');
+  return sanitize(v) || '<div><br></div>';
+}
+const memoKey = ed => ed.dataset.mmemo ? 'm'+pad(+ed.dataset.mmemo) : 'm'+pad(weekInfo(ed.dataset.wmemo).month);
+function saveMemo(ed){
+  const key = memoKey(ed);
+  let html = sanitize(ed.innerHTML);
+  if (!ed.textContent.trim() && !/class="(todo|bul|h|cat)"/.test(html)) html = '';
+  if (ed.dataset.mmemo) get(key).memo = html; else get(key).weekMemos[ed.dataset.wmemo] = html;
+  save(key);
+  if (cur.view==='month' && cur.tab==='weeks'){ clearTimeout(saveMemo.t); saveMemo.t = setTimeout(()=>{ const pv = app.querySelector('.gpanel'); if (pv && !pv.contains(document.activeElement)) pv.outerHTML = goalPanelHTML(cur.m); }, 300); }
+}
+function blockOf(ed, node){
+  if (!node) return null;
+  if (node === ed){ return null; }
+  while (node && node.parentNode !== ed) node = node.parentNode;
+  return node && node.nodeType===1 && node.tagName==='DIV' ? node : null;
+}
+function curBlock(ed){
+  const sel = getSelection(); if (!sel.rangeCount) return null;
+  let n = sel.anchorNode;
+  if (n === ed) n = ed.childNodes[Math.min(sel.anchorOffset, ed.childNodes.length-1)];
+  let b = blockOf(ed, n);
+  if (!b && n && n !== ed){ try { document.execCommand('formatBlock', false, 'div'); } catch(e){} b = blockOf(ed, getSelection().anchorNode); }
+  return b;
+}
+function atBlockStart(block){
+  const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return false;
+  const r = document.createRange(); r.setStart(block, 0); r.setEnd(sel.anchorNode, sel.anchorOffset);
+  return r.toString() === '';
+}
+function toggleTodo(ed){
+  const sel = getSelection(); if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  let blocks = [...ed.children].filter(c => c.tagName==='DIV' && range.intersectsNode(c));
+  if (!blocks.length){ const b = curBlock(ed); if (b) blocks = [b]; }
+  if (!blocks.length) return;
+  const on = !blocks.every(b => b.classList.contains('todo'));
+  blocks.forEach(b => { if (on) b.classList.add('todo'); else { b.classList.remove('todo'); b.removeAttribute('data-done'); } if (!b.className) b.removeAttribute('class'); });
+}
+app.addEventListener('mousedown', e=>{
+  const btn = e.target.closest('[data-rte]');
+  if (btn){ e.preventDefault(); return; }
+  const hd = e.target.closest('.rte > div.h');
+  if (hd && e.clientX - hd.getBoundingClientRect().left < 16 && hd.getAttribute('data-n')){
+    e.preventDefault();
+    if (hd.getAttribute('data-col')==='1') hd.removeAttribute('data-col'); else hd.setAttribute('data-col','1');
+    applyCollapse(hd.parentNode); saveMemo(hd.parentNode); return;
+  }
+  const t = e.target.closest('.rte > div.todo');
+  if (t && e.clientX - t.getBoundingClientRect().left - (t.getAttribute('data-ind')==='1' ? 0 : 0) < 22){
+    e.preventDefault();
+    if (t.getAttribute('data-done')==='1') t.removeAttribute('data-done'); else t.setAttribute('data-done','1');
+    saveMemo(t.parentNode);
+  }
+});
+app.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-rte]'); if (!btn) return;
+  const ed = btn.closest('.rte-wrap').querySelector('.rte');
+  if (bsActive() && BS.ed===ed){ if (btn.dataset.rte!=='cat'){ bsFormat(btn.dataset.rte); return; } bsClear(); }
+  if (!ed.contains(getSelection().anchorNode)){ ed.focus(); const r=document.createRange(); r.selectNodeContents(ed.lastElementChild||ed); r.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
+  if (btn.dataset.rte==='bold') document.execCommand('bold');
+  else if (btn.dataset.rte==='bul'){ const sel = getSelection(), range = sel.rangeCount ? sel.getRangeAt(0) : null;
+    let blocks = range ? [...ed.children].filter(c=>c.tagName==='DIV' && range.intersectsNode(c)) : []; if (!blocks.length){ const b = curBlock(ed); if (b) blocks = [b]; }
+    const on = !blocks.every(b=>b.classList.contains('bul'));
+    blocks.forEach(b=>{ const ind = b.getAttribute('data-ind'); setKind(b, on ? 'bul' : ''); if (ind) b.setAttribute('data-ind', ind); }); applyCollapse(ed); }
+  else if (btn.dataset.rte==='cat'){ const b = curBlock(ed); if (b){ openCatMenu(ed, b); return; } }
+  else toggleTodo(ed);
+  saveMemo(ed);
+});
+app.addEventListener('keydown', e=>{
+  if (e.target.dataset && e.target.dataset.ren){ if (e.isComposing) return; if (e.key==='Enter'){ e.preventDefault(); commitRen(e.target); } else if (e.key==='Escape'){ e.preventDefault(); commitRen(e.target, true); } return; }
+  const ed = e.target.closest && e.target.closest('.rte'); if (!ed) return;
+  if (e.isComposing) return;
+  if (e.key==='Escape' && !catMenuFor){
+    e.preventDefault(); e.stopPropagation(); const sl = getSelection(); let bl = [];
+    if (sl.rangeCount && !sl.isCollapsed){ const rg = sl.getRangeAt(0); bl = [...ed.children].filter(c=>rg.intersectsNode(c)); }
+    if (!bl.length){ const b = curBlock(ed); if (b) bl = [b]; }
+    bsSet(ed, bl); return;
+  }
+  if ((e.metaKey||e.ctrlKey) && !e.shiftKey && (e.key.toLowerCase()==='a' || e.key==='ㅁ')){
+    const b = curBlock(ed), sl = getSelection();
+    if (b && b.textContent.trim() && sl.toString().trim() !== b.textContent.trim()){ e.preventDefault(); const rg = document.createRange(); rg.selectNodeContents(b); sl.removeAllRanges(); sl.addRange(rg); return; }
+    if (ed.textContent.trim()){ e.preventDefault(); bsSet(ed, bsVisible(ed)); return; }
+  }
+  if (e.key==='Tab'){
+    const b = curBlock(ed); if (!b || isHead(b)) { e.preventDefault(); return; }
+    e.preventDefault();
+    const lv = +(b.getAttribute('data-ind')||0), nl = e.shiftKey ? Math.max(0, lv-1) : Math.min(3, lv+1);
+    if (nl) b.setAttribute('data-ind', nl); else b.removeAttribute('data-ind');
+    applyCollapse(ed); saveMemo(ed); return;
+  }
+  if (e.key==='Enter' && !e.shiftKey){
+    const b = curBlock(ed);
+    if (b && b.textContent==='' && b.getAttribute('data-ind')){ e.preventDefault(); const lv = +b.getAttribute('data-ind')-1; if (lv) b.setAttribute('data-ind', lv); else b.removeAttribute('data-ind'); saveMemo(ed); return; }
+    if (b && b.classList.contains('bul') && b.textContent===''){ e.preventDefault(); setKind(b, ''); saveMemo(ed); return; }
+    if (b && b.classList.contains('todo') && b.textContent===''){ e.preventDefault(); setKind(b, ''); saveMemo(ed); return; }
+    if (b && isHead(b) && b.textContent===''){ e.preventDefault(); setKind(b, ''); applyCollapse(ed); saveMemo(ed); return; }
+    const wasH = b && b.classList.contains('h'), wasCat = b && b.classList.contains('cat');
+    if (wasH && b.getAttribute('data-col')==='1'){ b.removeAttribute('data-col'); applyCollapse(ed); }
+    setTimeout(()=>{ const nb = curBlock(ed); if (!nb) return;
+      if (wasH && nb !== b){ setKind(nb, 'todo', {'data-ind':'1'}); }
+      else if (wasCat && nb !== b){ setKind(nb, ''); }
+      else if (nb.textContent==='') { nb.removeAttribute('data-done'); }
+      applyCollapse(ed); saveMemo(ed); }, 0);
+  } else if (e.key==='Backspace'){
+    const b = curBlock(ed);
+    if (b && b.getAttribute('data-ind') && atBlockStart(b)){ e.preventDefault(); const lv = +b.getAttribute('data-ind')-1; if (lv) b.setAttribute('data-ind', lv); else b.removeAttribute('data-ind'); saveMemo(ed); return; }
+    if (b && (b.classList.contains('todo') || b.classList.contains('bul') || isHead(b)) && atBlockStart(b)){ e.preventDefault(); setKind(b, ''); applyCollapse(ed); saveMemo(ed); }
+  }
+});
+app.addEventListener('focusout', e=>{ if (e.target.dataset && e.target.dataset.ren) commitRen(e.target); });
+app.addEventListener('paste', e=>{
+  const ed = e.target.closest && e.target.closest('.rte'); if (!ed) return;
+  e.preventDefault();
+  const cd = e.clipboardData || window.clipboardData, bh = clipBlocks(cd);
+  if (bh){ const snap = bsSnap([memoKey(ed)]), nodes = bsInsert(ed, curBlock(ed), bh); if (nodes.length){ const last = nodes[nodes.length-1]; const rg = document.createRange(); rg.selectNodeContents(last); rg.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); showUndo('', snap, `${nodes.length}줄 붙여넣었어요`); } return; }
+  const text = cd.getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+let rteBusy = false;
+function rteInput(ed){
+  if (rteBusy) return; rteBusy = true;
+  try { rteInput2(ed); } finally { rteBusy = false; }
+}
+function rteInput2(ed){
+  if (!ed.firstChild || ed.innerHTML==='<br>'){ ed.innerHTML = '<div><br></div>'; const r=document.createRange(); r.setStart(ed.firstChild,0); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
+  const b = curBlock(ed);
+  if (b && !isHead(b) && !b.classList.contains('todo') && /^#[\s\u00a0]/.test(b.textContent)){
+    const tn = document.createTreeWalker(b, NodeFilter.SHOW_TEXT).nextNode(); if (tn) tn.nodeValue = tn.nodeValue.replace(/^#[\s\u00a0]/, '');
+    setKind(b, 'h'); if (!b.textContent) b.innerHTML = '<br>';
+    const rg = document.createRange(); rg.selectNodeContents(b); rg.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg);
+    applyCollapse(ed); saveMemo(ed); return;
+  }
+  if (b && !isHead(b) && !b.classList.contains('todo') && /^[-*][\s ]/.test(b.textContent)){
+    const tn = document.createTreeWalker(b, NodeFilter.SHOW_TEXT).nextNode(); if (tn) tn.nodeValue = tn.nodeValue.replace(/^[-*][\s ]/, '');
+    const ind = b.getAttribute('data-ind'); setKind(b, 'bul'); if (ind) b.setAttribute('data-ind', ind); if (!b.textContent) b.innerHTML = '<br>';
+    const rg = document.createRange(); rg.selectNodeContents(b); rg.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg);
+    saveMemo(ed); return;
+  }
+  if (b && b.textContent === '/' && !b.classList.contains('cat')){ openCatMenu(ed, b); }
+  else if (catMenuFor) closeCatMenu();
+  if (b && !b.classList.contains('todo') && /^\[ ?\][\s ]/.test(b.textContent)){
+    const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT); let need = b.textContent.match(/^\[ ?\][\s ]/)[0].length, n, last = null;
+    while (need > 0 && (n = w.nextNode())){ const take = Math.min(need, n.nodeValue.length); n.nodeValue = n.nodeValue.slice(take); need -= take; last = n; }
+    b.classList.remove('bul'); b.classList.add('todo');
+    if (!b.textContent) b.innerHTML = '<br>';
+    const r = document.createRange();
+    if (last && last.parentNode && last.nodeValue.length) r.setStart(last, 0); else r.setStart(b, 0);
+    r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  saveMemo(ed);
+}
+
+/* ---------- router ---------- */
+let cur = {view:'home'};
+function route(){
+  const h = (location.hash||'').slice(1);
+  const t = todayTargets();
+  let m;
+  if (h==='year') return {view:'year'};
+  if (h==='monthly') return {view:'month', m:t.month};
+  if (h==='weekly') return {view:'week', k:t.week};
+  if (h==='daily') return {view:'day', d:t.day};
+  if ((m = h.match(/^day-(\d{4}-\d{2}-\d{2})$/))){ let d = m[1]; if (d<FIRST_DAY) d=FIRST_DAY; if (d>LAST_DAY) d=LAST_DAY; d = iso(parseIso(d)); return {view:'day', d}; }
+  if ((m = h.match(/^month-(\d{1,2})(?:-(weeks|review))?$/))){ const n = Math.min(12, Math.max(1, +m[1])); return {view:'month', m:n, tab:m[2]||'plan'}; }
+  if ((m = h.match(/^week-(\d{4}-\d{2}-\d{2})(?:-(review))?$/))){ let k = iso(mondayOf(parseIso(m[1]))); if(k<FIRST_WEEK)k=FIRST_WEEK; if(k>LAST_WEEK)k=LAST_WEEK; return {view:'week', k, tab:m[2]||'plan'}; }
+  return {view:'home'};
+}
+function render(){
+  try { bsClear(); } catch(e){}
+  cur = route(); viewKeys = new Set();
+  app.innerHTML = cur.view==='year' ? viewYear() : cur.view==='month' ? viewMonth(cur.m, cur.tab) : cur.view==='week' ? viewWeek(cur.k, cur.tab) : cur.view==='day' ? viewDay(cur.d) : viewHome();
+  app.insertAdjacentHTML('beforeend', drawerHTML());
+  app.querySelectorAll('.rte').forEach(applyCollapse);
+  if (drawerAnim){ drawerAnim = false; requestAnimationFrame(()=>requestAnimationFrame(()=>{ app.querySelectorAll('.drawer,.dw-ov').forEach(x=>x.classList.add('open')); })); }
+  document.querySelectorAll('.tab').forEach(a => a.classList.toggle('on', a.dataset.tab===cur.view));
+  const t = todayTargets();
+  document.querySelector('[data-tab=month]').href = '#month-' + t.month;
+  document.querySelector('[data-tab=week]').href = '#week-' + t.week;
+  document.querySelector('[data-tab=day]').href = '#day-' + t.day;
+  if (cur.view==='year'){ bindDrag(); bindMonthDrag(); app.querySelectorAll('[data-some="1"]').forEach(x=>x.indeterminate=true); }
+}
+window.addEventListener('hashchange', ()=>{ drawer = null; gpOpen = false; render(); window.scrollTo(0,0); });
+
+/* ---------- 월 선택: 드래그로 쭉 ---------- */
+function bindMonthDrag(){
+  const body = document.getElementById('goalBody'); if (!body) return;
+  const apply = (cell, g, mode)=>{ const i = +cell.dataset.i; if (g.months[i]===mode) return; g.months[i] = mode; if (!mode && g.dm) g.dm[i] = false; cell.classList.toggle('on', mode); cell.setAttribute('aria-checked', mode); };
+  body.addEventListener('pointerdown', e=>{
+    const cell = e.target.closest('.mc'); if (!cell || e.button>0) return;
+    e.preventDefault();
+    const g = get('year').goals.find(x=>x.id===cell.dataset.gm); if (!g) return;
+    const mode = !g.months[+cell.dataset.i];
+    apply(cell, g, mode);
+    const move = ev=>{ const el = document.elementFromPoint(ev.clientX, ev.clientY); const c = el && el.closest && el.closest('.mc'); if (c && c.dataset.gm===g.id) apply(c, g, mode); };
+    const up = ()=>{ window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); save('year'); render(); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  });
+  body.addEventListener('keydown', e=>{
+    const cell = e.target.closest && e.target.closest('.mc'); if (!cell || (e.key!==' ' && e.key!=='Enter')) return;
+    e.preventDefault(); const g = get('year').goals.find(x=>x.id===cell.dataset.gm); if (!g) return;
+    const i = +cell.dataset.i; g.months[i] = !g.months[i]; save('year'); render();
+    const again = app.querySelector(`.mc[data-gm="${g.id}"][data-i="${i}"]`); again && again.focus();
+  });
+}
+
+/* ---------- drag reorder (마우스·터치 모두) ---------- */
+function bindDrag(){
+  const body = document.getElementById('goalBody'); if (!body) return;
+  body.addEventListener('pointerdown', e=>{
+    const h = e.target.closest('.handle'); if (!h) return;
+    e.preventDefault();
+    const row = h.closest('tr'); row.classList.add('dragging');
+    const move = ev=>{
+      const rows = [...body.querySelectorAll('tr:not(.dragging)')]; let before = null;
+      for (const r of rows){ const b = r.getBoundingClientRect(); if (ev.clientY < b.top + b.height/2){ before = r; break; } }
+      if (before) { if (row.nextSibling!==before) body.insertBefore(row, before); } else if (body.lastElementChild!==row) body.appendChild(row);
+    };
+    const up = ()=>{
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      row.classList.remove('dragging');
+      const order = [...body.querySelectorAll('tr')].map(r=>r.dataset.id);
+      const y = get('year'), set = new Set(order);
+      const slots = y.goals.map((g,i)=>set.has(g.id)?i:-1).filter(i=>i>=0);
+      const byId = Object.fromEntries(y.goals.map(g=>[g.id,g]));
+      const ng = y.goals.slice(); slots.forEach((s,j)=>{ ng[s] = byId[order[j]]; });
+      if (ng.some((g,i)=>g!==y.goals[i])){ y.goals = ng; save('year'); document.getElementById('monthGrid').innerHTML = monthGridHTML(); }
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  });
+}
+
+/* ---------- events ---------- */
+app.addEventListener('submit', e=>{
+  const f = e.target.closest('form[data-form]'); if (!f) return;
+  e.preventDefault();
+  const type = f.dataset.form;
+  if (type==='goal'){
+    const inp = document.getElementById('goalText'), text = inp.value.trim(); if (!text) return;
+    const cat = document.getElementById('goalCat').value;
+    get('year').goals.push({id:uid(), text, cat, months:Array(12).fill(false)});
+    if (yearFilter!=='전체' && yearFilter!==cat) yearFilter = '전체';
+    save('year'); render(); document.getElementById('goalText').focus();
+  } else if (type==='mgoal' || type==='todo'){
+    const inp = f.querySelector('input:not([type=hidden])'), text = inp.value.trim(); if (!text) return;
+    const mm = +(f.dataset.m || cur.m), key = 'm'+pad(mm), d = get(key), inDrawer = !!f.closest('.drawer');
+    if (type==='mgoal'){
+      const gv = f.querySelector('.gval'); mgCat = (gv && gv.value) || '기타';
+      const months = Array(12).fill(false); months[mm-1] = true;
+      get('year').goals.push({id:uid(), text, cat:mgCat || '기타', months}); save('year');
+    } else { d.todos.push({id:uid(), text, done:false}); save(key); }
+    render(); const nf = app.querySelector(`${inDrawer?'.drawer ':''}form[data-form="${type}"][data-m="${mm}"] input.field`); nf && nf.focus();
+  } else if (type==='wgoal'){
+    const inp = f.querySelector('input'), text = inp.value.trim(); if (!text) return;
+    const wk = f.dataset.k, w = get('w'+wk); w.goals = w.goals || []; w.goals.push({id:uid(), text, done:false});
+    save('w'+wk); render(); const nf = app.querySelector(`form[data-form="wgoal"][data-k="${wk}"] input`); nf && nf.focus();
+  } else if (type==='exp'){
+    const amt = parseInt((document.getElementById('eAmt').value||'').replace(/[^0-9]/g,''),10);
+    if (!(amt>0)){ document.getElementById('eAmt').focus(); return; }
+    eCat = document.getElementById('eCat').value; ePay = document.getElementById('ePay').value;
+    const dd = dayDoc(cur.d); dd.exps = dd.exps || [];
+    dd.exps.push({id:uid(), kind:eKind, cat:eCat, pay:ePay, text:document.getElementById('eText').value.trim(), amt});
+    save('d'+cur.d); render(); document.getElementById('eText').focus();
+  } else if (type==='opt'){
+    const inp = f.querySelector('input'), v = inp.value.trim(); if (!v) return;
+    const st = get('settings'), list = st[f.dataset.kind]; if (!list.includes(v)) list.push(v);
+    if (f.dataset.kind==='expCats') eCat = v; else ePay = v;
+    save('settings'); render(); app.querySelector(`form[data-form="opt"][data-kind="${f.dataset.kind}"] input`).focus();
+  } else if (type==='gcat'){
+    let v = f.querySelector('input').value.trim(); if (!v) return;
+    const list = gcats(); if (!list.some(x=>x.n===v)){ const used = list.map(x=>x.c); let c = PAL.findIndex((_,i)=>i!==4 && !used.includes(i)); if (c<0) c = list.length % PAL.length; list.push({n:v, e:'', c}); }
+    save('settings'); render(); app.querySelector('form[data-form="gcat"] input').focus();
+  } else if (type==='content'){
+    const title = document.getElementById('cTitle').value.trim(); if (!title){ document.getElementById('cTitle').focus(); return; }
+    cType = document.getElementById('cType').value;
+    const key = 'd'+cur.d; dayDoc(cur.d).contents.push({id:uid(), type:cType, title, note:document.getElementById('cNote').value.trim()});
+    save(key); render(); document.getElementById('cTitle').focus();
+  } else if (type==='routine'){
+    const text = document.getElementById('rText').value.trim(); if (!text) return;
+    let n = parseInt(document.getElementById('rNum').value,10); if (!(n>=1)) n = 1; if (n>7) n = 7;
+    const key = 'w'+cur.k; get(key).routines.push({id:uid(), text, n, checks:Array(n).fill(false)});
+    save(key); render(); document.getElementById('rText').focus();
+  }
+});
+
+app.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if (UNDO_KEYS[act]){
+    const keys = UNDO_KEYS[act](b), snap = keys.map(k=>[k, JSON.stringify(get(k))]);
+    const row = b.closest('li,tr,.eline,.cline,.mchip');
+    let label = '';
+    if (row){ const inp = row.querySelector('input[type=text]'); const el = row.querySelector('.rt,.yg,.ctitle,.mname');
+      if (row.classList.contains('eline')) label = [row.querySelector('.ecat'), row.querySelector('.eamt')].filter(Boolean).map(x=>x.textContent).join(' ');
+      else label = (inp && inp.value) || (el && el.textContent) || ''; }
+    label = label.trim(); if (label.length > 18) label = label.slice(0,18) + '…';
+    queueMicrotask(()=>showUndo(label, snap));
+  }
+  if (act==='cond'){ const d=dayDoc(cur.d), v=+b.dataset.v; d.cond.score = d.cond.score===v ? 0 : v; save('d'+cur.d); render(); return; }
+  if (act==='ren'){ renaming = {kind:b.dataset.kind, i:+b.dataset.i}; render(); const inp = app.querySelector('input.ren'); if (inp){ inp.focus(); inp.select(); } return; }
+  if (act==='gedit'){ gEdit = !gEdit; render(); return; }
+  if (act==='gdel'){ gcats().splice(+b.dataset.i,1); save('settings'); render(); return; }
+  if (act==='gcolor'){ const x = gcats()[+b.dataset.i]; x.c = (x.c+1) % PAL.length; save('settings'); render(); return; }
+  if (act==='ekind'){ eKind = b.dataset.v; app.querySelectorAll('.kseg button').forEach(x=>x.classList.toggle('on', x.dataset.v===eKind)); return; }
+  if (act==='eedit'){ eEdit = !eEdit; render(); return; }
+  if (act==='delOpt'){ const st=get('settings'), list=st[b.dataset.kind]; list.splice(+b.dataset.i,1); save('settings'); render(); return; }
+  if (act==='delExp'){ const d=dayDoc(cur.d); d.exps = (d.exps||[]).filter(e=>e.id!==id); save('d'+cur.d); render(); return; }
+  if (act==='delContent'){ const d=dayDoc(cur.d); d.contents = d.contents.filter(c=>c.id!==id); save('d'+cur.d); render(); return; }
+  if (act==='filter'){ yearFilter = b.dataset.v; render(); return; }
+  if (act==='delGoal'){ const y=get('year'); y.goals = y.goals.filter(g=>g.id!==id); save('year'); render(); return; }
+  if (act==='unYear'){ const g=get('year').goals.find(x=>x.id===id); if(g){ const mi=+(b.dataset.m||cur.m)-1; g.months[mi]=false; if(g.dm) g.dm[mi]=false; save('year'); } render(); return; }
+  if (act==='delWGoal'){ const w=get('w'+b.dataset.k); w.goals=(w.goals||[]).filter(x=>x.id!==id); save('w'+b.dataset.k); render(); return; }
+  if (act==='gptoggle'){ setGP(!gpOpen); return; }
+  if (act==='gpick'){ const w = b.closest('.gpickw'); const open = !w.classList.contains('open'); app.querySelectorAll('.gpickw.open').forEach(x=>x.classList.remove('open')); w.classList.toggle('open', open); return; }
+  if (act==='gchoose'){ const w = b.closest('.gpickw'), v = b.dataset.v, gv = w.querySelector('.gval'), btn = w.querySelector('.gpick');
+    if (gv.value === v){ gv.value = ''; btn.innerHTML = '<span class="gdot empty"></span>'; }
+    else { gv.value = v; const c = gcats().find(x=>x.n===v); btn.innerHTML = c && c.e ? `<span class="gemo">${c.e}</span>` : `<span class="gdot" style="background:${catDot(v)}"></span>`; btn.title = v; }
+    w.classList.remove('open'); const inp = w.closest('form').querySelector('input.field'); inp && inp.focus(); return; }
+  if (act==='dwOpen'){ drawer = {m:+b.dataset.m}; drawerAnim = true; render(); setTimeout(()=>{ const sec = document.getElementById(b.dataset.focus==='todos'?'dw-todos':'dw-goals'); if (sec){ sec.scrollIntoView({block:'start'}); const i = sec.querySelector('form input') || sec.querySelector('.rte'); i && i.focus({preventScroll:true}); } }, 260); return; }
+  if (act==='dwClose'){ const d=app.querySelector('.drawer'), o=app.querySelector('.dw-ov'); d&&d.classList.remove('open'); o&&o.classList.remove('open'); setTimeout(()=>{ drawer=null; render(); }, 220); return; }
+  if (act==='delMGoal' || act==='delTodo'){ const key='m'+pad(+(b.dataset.m||cur.m)), d=get(key); const f = act==='delMGoal'?'goals':'todos'; d[f] = d[f].filter(x=>x.id!==id); save(key); render(); return; }
+  if (act==='delRoutine'){ const key='w'+cur.k, w=get(key); w.routines = w.routines.filter(r=>r.id!==id); save(key); render(); return; }
+  if (act==='copyRoutines'){ const src=get('w'+b.dataset.from), key='w'+cur.k; get(key).routines = src.routines.map(r=>({id:uid(), text:r.text, n:r.n, checks:Array(r.n).fill(false)})); save(key); render(); return; }
+});
+
+app.addEventListener('change', e=>{
+  const el = e.target, ds = el.dataset;
+  if (ds.dset && el.type==='time'){ render(); return; }
+  if (ds.drt){
+    const dd = dayDoc(cur.d); dd.rt = dd.rt || {};
+    const wk = iso(mondayOf(parseIso(cur.d))), wkey = 'w'+wk, r = get(wkey).routines.find(x=>x.id===ds.drt); if (!r) return;
+    if (el.checked){ const i = r.checks.indexOf(false); if (i<0){ render(); return; } r.checks[i] = true; dd.rt[r.id] = true; }
+    else { const i = r.checks.lastIndexOf(true); if (i>=0) r.checks[i] = false; delete dd.rt[r.id]; }
+    save(wkey); save('d'+cur.d); render(); return;
+  }
+  if (ds.goalAll){ const g = get('year').goals.find(x=>x.id===ds.goalAll); if(!g) return; g.months = Array(12).fill(el.checked); save('year'); render(); }
+  else if (ds.goalMonth){ const g = get('year').goals.find(x=>x.id===ds.goalMonth); if(!g) return; g.months[+ds.i] = el.checked; save('year'); render(); }
+  else if (ds.goalText){ document.getElementById('monthGrid').innerHTML = monthGridHTML(); }
+  else if (ds.gdone){ const g=get('year').goals.find(x=>x.id===ds.gdone); if(!g) return; g.done=el.checked; save('year'); render(); }
+  else if (ds.ygdone){ const g=get('year').goals.find(x=>x.id===ds.ygdone); if(!g) return; g.dm = g.dm || Array(12).fill(false); g.dm[+ds.m-1]=el.checked; save('year'); render(); }
+  else if (ds.mgdone){ const key='m'+pad(+ds.m), g=get(key).goals.find(x=>x.id===ds.mgdone); if(!g) return; g.done=el.checked; save(key); render(); }
+  else if (ds.wgdone){ const w=get('w'+ds.k), g=(w.goals||[]).find(x=>x.id===ds.wgdone); if(!g) return; g.done=el.checked; save('w'+ds.k); render(); }
+  else if (ds.todo){ const key='m'+pad(+(ds.m||cur.m)), x=get(key).todos.find(t=>t.id===ds.todo); if(!x) return; x.done = el.checked; save(key); render(); }
+  else if (ds.rt){ const key='w'+cur.k, r=get(key).routines.find(t=>t.id===ds.rt); if(!r) return; r.checks[+ds.i] = el.checked; save(key); render(); }
+});
+
+app.addEventListener('input', e=>{
+  const el = e.target, ds = el.dataset;
+  if (el.id==='eAmt'){ const n=el.value.replace(/[^0-9]/g,''); el.value = n ? (+n).toLocaleString('ko-KR') : ''; return; }
+  if (el.id==='eCat'){ eCat = el.value; return; }
+  if (el.id==='ePay'){ ePay = el.value; return; }
+  if (ds.dset){ let v = el.value; if (el.type==='number'){ v = v.replace(/[^0-9]/g,''); const mx = +el.max; if (v!=='' && +v>mx) v = String(mx); if (el.value!==v) el.value = v; } setPath(dayDoc(cur.d), ds.dset, v); save('d'+cur.d); return; }
+  if (el.classList && el.classList.contains('rte')){ if (e.isComposing) saveMemo(el); else rteInput(el); return; }
+  if (ds.day){ const key='m'+pad(cur.m); const d=get(key); if (el.value) d.days[ds.day]=el.value; else delete d.days[ds.day]; save(key); }
+  else if (ds.mkpt){ const key='m'+pad(cur.m), doc=get(key); doc.kpt = doc.kpt || {}; doc.kpt[ds.mkpt] = el.value; save(key); const ap=el.closest('details').querySelector('.ap'); if(ap) ap.textContent = el.value.split('\n')[0]; }
+  else if (ds.kpt){ const key='w'+cur.k; get(key).kpt[ds.kpt] = el.value; save(key); const ap=el.closest('details').querySelector('.ap'); if(ap) ap.textContent = el.value.split('\n')[0]; }
+  else if (ds.goalText){ const g=get('year').goals.find(x=>x.id===ds.goalText); if(g){ g.text=el.value; save('year'); } }
+  else if (ds.wgoalText){ const w=get('w'+ds.k), g=(w.goals||[]).find(x=>x.id===ds.wgoalText); if(g){ g.text=el.value; save('w'+ds.k); } }
+  else if (ds.mgoal){ const key='m'+pad(+(ds.m||cur.m)), g=get(key).goals.find(x=>x.id===ds.mgoal); if(g){ g.text=el.value; save(key); } }
+  else if (ds.todoText){ const key='m'+pad(+(ds.m||cur.m)), x=get(key).todos.find(t=>t.id===ds.todoText); if(x){ x.text=el.value; save(key); } }
+});
+
+app.addEventListener('toggle', e=>{ const d=e.target; if(!d.dataset || !d.dataset.acc) return; if(d.open){ openAcc.add(d.dataset.acc); const t=d.querySelector('textarea'); t && t.focus(); } else openAcc.delete(d.dataset.acc); }, true);
+
+render();
+setSync('connecting');
+connect();
+})();
+</script>
+</body>
+</html>
